@@ -1,4 +1,6 @@
 class Vivaria < Formula
+    # https://github.com/GatlenCulp/homebrew-vivarium
+    # brew tap-new GatlenCulp/homebrew-vivarium
     desc "Vivaria task environment setup tool"
     homepage "https://vivaria.metr.org/"
     url "https://github.com/Form-And-Function/vivaria", :using => :git, :branch => "main", :depth => 1
