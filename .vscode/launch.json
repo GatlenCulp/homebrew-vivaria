@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // Not working. Not sure how to configure.
+      "name": "Debug Homebrew Formula",
+      "type": "rdbg",
+      "request": "launch",
+      "command": "brew",
+      "script": "./Formula/vivaria.rb",
+      "args": ["--formula", "--debug", "--verbose"],
+      "env": {
+        "HOMEBREW_DEBUG": "1",
+        "HOMEBREW_DEBUG_INSTALL": "vivaria"
+      },
+      "cwd": "${workspaceFolder}",
+      "useBundler": false
+    }
+  ]
+}
