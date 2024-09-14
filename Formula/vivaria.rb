@@ -32,7 +32,7 @@ class Vivaria < Formula
   # Brew tracks the files installed by the formula. But only removes files in the prefix directory
   # Cellar is within the prefix directory for formulas.
   def install
-    binding.pry
+    # binding.pry for debugging, not set up yet
     # Create necessary directories in the Cellar
     # The `prefix` variable refers to the root directory of this formula in the Cellar
     (prefix/"scripts").mkpath

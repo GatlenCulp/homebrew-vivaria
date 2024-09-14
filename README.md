@@ -1,28 +1,37 @@
 # GatlenCulp Vivarium
-https://github.com/GatlenCulp/vivaria/archive/refs/tags/v0.1.0.tar.gz
-curl -L https://github.com/GatlenCulp/vivaria/archive/refs/tags/v0.1.0.tar.gz | shasum -a 256
-eabcf6b3d0d63ba37cd6af03c0566e981d333b5a06fd38dd61102e9f72941ecd
+`https://github.com/GatlenCulp/vivaria/archive/refs/tags/v0.1.0.tar.gz`
 
-brew install --formula --debug --verbose ./Formula/vivaria.rb
+`curl -L https://github.com/GatlenCulp/vivaria/archive/refs/tags/v0.1.0.tar.gz | shasum -a 256`
 
-gem install ruby-lsp
-gem install debug
+= `eabcf6b3d0d63ba37cd6af03c0566e981d333b5a06fd38dd61102e9f72941ecd`
 
-TODO: Make a .gitattributes file to exclude files from releases for install.
+Uncertain why this is needed before installing:
+`brew link docker`
+
+`brew install --formula --debug --verbose ./Formula/vivaria.rb`
+
+`brew uninstall --debug --verbose vivaria`
+
+`brew cleanup`
+
+`gem install ruby-lsp`
+`gem install debug`
+
+
+TODO: Make a `.gitattributes` file to exclude files from releases for install.
 
 ## How do I install these formulae?
 
-`brew install gatlenculp/vivarium/<formula>`
+`brew tap gatlenculp/vivaria` and then `brew install vivaria`.
 
-Or `brew tap gatlenculp/vivarium` and then `brew install <formula>`.
-
-Or, in a [`brew bundle`](https://github.com/Homebrew/homebrew-bundle) `Brewfile`:
-
-```ruby
-tap "gatlenculp/vivarium"
-brew "<formula>"
-```
+<!-- Or, in a [`brew bundle`](https://github.com/Homebrew/homebrew-bundle) `Brewfile`: -->
 
 ## Documentation
 
 `brew help`, `man brew` or check [Homebrew's documentation](https://docs.brew.sh).
+
+## Project notes
+
+I am creating a brew formula for [Vivaria](https://vivaria.metr.org/), Vivaria is METR's tool for running evaluations and conducting agent elicitation research. Vivaria is a web application with which users can interact using a web UI and a command-line interface.
+
+I have created my own fork to install and test from located at [https://github.com/GatlenCulp/vivaria/](https://github.com/GatlenCulp/vivaria/)
