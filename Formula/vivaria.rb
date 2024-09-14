@@ -35,8 +35,8 @@ class Vivaria < Formula
     # binding.pry for debugging, not set up yet
     # Create necessary directories in the Cellar
     # The `prefix` variable refers to the root directory of this formula in the Cellar
-    (prefix/"scripts").mkpath
-    (prefix/"docker").mkpath
+    # (prefix/"scripts").mkpath
+    # (prefix/"docker").mkpath
 
     # These commands are ruby methods wrapping shell commands
     # Copy the setup scripts to the Cellar
@@ -51,13 +51,26 @@ class Vivaria < Formula
     rm_rf prefix/".github"
     rm_rf prefix/".vscode"
 
-    # # Create necessary symlinks
+
+    # Set permissions for scripts
+    chmod 0755, prefix/"scripts/setup-docker-compose.sh"
+    chmod 0755, prefix/"scripts/configure-cli-for-docker-compose.sh"
+
+    # These scripts must be run in the prefix directory to generate the files in the correct location
+    Dir.chdir(prefix) do
+      system "./scripts/setup-docker-compose.sh"
+      raise "Setup script failed" unless $?.success?
+      
+      # # NOTE: Viv must be available via the command line before this is run.
+      # system "./scripts/configure-cli-for-docker-compose.sh"
+      # raise "Configuration script failed" unless $?.success?
+    end
+
+    # # Create necessary symlinks (to either /usr/local/bin or /opt/homebrew/bin)
+    # # This is properly set up by homebrew, but this sets up the files in the CWD.
     # bin.install_symlink prefix/"scripts/setup-docker-compose.sh" => "vivaria-setup"
     # bin.install_symlink prefix/"scripts/configure-cli-for-docker-compose.sh" => "vivaria-cli-setup"
 
-    # # Set permissions for scripts
-    # chmod 0755, prefix/"scripts/setup-docker-compose.sh"
-    # chmod 0755, prefix/"scripts/configure-cli-for-docker-compose.sh"
 
     # etc = editable text configurations
     # It is non-standard for homebrew to use ~/.config or ~/.<name> for configuration
@@ -69,6 +82,9 @@ class Vivaria < Formula
     # cp buildpath/"config.default", etc/"vivaria/config" if File.exist? buildpath/"config.default"
   end
 
+  def post_install
+    ohai "Lol"
+  end
   # Information displayed after installation
   def caveats
     <<~EOS
