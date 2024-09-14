@@ -19,14 +19,21 @@ class Vivaria < Formula
   # The license of the software
   license "MIT"
 
+  # TODO: AUTHORS: METR <info@metr.org>
+
   # Dependencies required to run the software
   # Brew will make sure these are installed before installing the software
   # `:run` means these are runtime dependencies
   # This was fixed after I ran `brew link docker`
   depends_on "docker" => :run
   depends_on "docker-compose" => :run
+  # TODO: Depends on python >= 3.11
+  # python=">=3.11,<4"
+  # For the CLI
+  # Might not be necessary? I think homebrew already has python installed
+  depends_on "python" => :build
 
-  
+  DEV_MODE = false
 
   # The installation method
   # Brew tracks the files installed by the formula. But only removes files in the prefix directory
@@ -58,6 +65,8 @@ class Vivaria < Formula
 
     # These scripts must be run in the prefix directory to generate the files in the correct location
     Dir.chdir(prefix) do
+      # TODO: Check if libxec is a better way to run these scripts
+      # TODO: Check if it is better to set up docker compose in etc since these are configuration files.
       system "./scripts/setup-docker-compose.sh"
       raise "Setup script failed" unless $?.success?
       
@@ -65,6 +74,22 @@ class Vivaria < Formula
       # system "./scripts/configure-cli-for-docker-compose.sh"
       # raise "Configuration script failed" unless $?.success?
     end
+
+    def cli_setup
+      # TODO: Set up a "developer install" of the CLI. Is this useful or should they just work from a cloned repo?
+      # TODO: Include Version: 1.0.0 from the pyproject.toml file
+      Dir.chdir(prefix) do
+        # Install python dependencies
+        system "python3 -m venv venv"
+        system "source ./venv/bin/activate"
+        # Makes the CLI available in the command line
+        # Non-editable mode are slightly faster, but editable mode is better for development
+        if DEV_MODE then
+          system "pip install -e cli"
+        else
+          system "pip install cli"
+        end
+      end
 
     # # Create necessary symlinks (to either /usr/local/bin or /opt/homebrew/bin)
     # # This is properly set up by homebrew, but this sets up the files in the CWD.
