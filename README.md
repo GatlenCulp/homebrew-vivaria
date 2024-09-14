@@ -17,8 +17,20 @@ Uncertain why this is needed before installing:
 `gem install ruby-lsp`
 `gem install debug`
 
+https://rubydoc.brew.sh/Formula#homepage%3D-class_method
+
+TODO: Use for language specific dependencies (resources):
+https://rubydoc.brew.sh/Formula#resource-class_method
+Ex: https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/j/jrnl.rb
+
+TODO: Add man pages to `prefix/share/man`
+TODO: Add docs to `prefix/share/doc/<name>`
 
 TODO: Make a `.gitattributes` file to exclude files from releases for install.
+
+TODO: `brew audit --strict --online` to check whether this fits the brew style guide.
+
+I really should have just read the docs.
 
 ## How do I install these formulae?
 
