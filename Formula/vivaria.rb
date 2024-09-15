@@ -99,35 +99,74 @@ class Vivaria < Formula
     
     # Install scripts (places in prefix/bin and HOMEBREW_PREFIX/bin)
     bin.install libexec / "venv/bin/viv"
-    bin.install "scripts/setup-docker-compose.sh" => "viv-setup-docker-compose"
-    bin.install "scripts/configure-cli-for-docker-compose.sh" => "viv-configure-cli-for-docker-compose"
-    
-    # # Set permissions if necessary
-    # chmod 0755, bin/"viv-setup-docker-compose"
-    # chmod 0755, bin/"viv-configure-cli-for-docker-compose"
-    
-    # Copy everything except certain directories
-    prefix.install Dir["*"]
-    prefix.install Dir[".*"].select { |f| File.file?(f) }
+    bin.install "scripts/setup-docker-compose.sh" => "viv-setup-docker"
+    bin.install "scripts/configure-cli-for-docker-compose.sh" => "viv-setup-cli"
+
+    # Install everything in docs as well as the README, CHANGELOG, LICENSE, and CONTRIBUTING
+    doc.install Dir["docs/*"]
+    doc.install "README.md"
+    doc.install "LICENSE"
+    doc.install "CONTRIBUTING.md"
+
+    # Setup script that combines the two and sets up the environment
 
     # Clean up unnecessary directories
     rm_rf ".devcontainer"
     rm_rf ".github"
     rm_rf ".vscode"
     rm_rf "cli" # This is installed in the virtualenv
+    rm_rf "docs" # This is installed in the doc directory
     rm_rf "ignore"
+    
+    # Copy remaining files to vivaria directory
+    src_dir = prefix/"vivaria"
+    src_dir.mkpath
+    src_dir.install Dir["*", ".*"].reject { |f| ['.', '..'].include?(File.basename(f)) }
+    # Include .git directory for development
+    src_dir.install ".git"
+    # prefix.install Dir["*"]
+    # prefix.install Dir[".*"].select { |f| File.file?(f) }
+
+    # Make viv-docker command available which sends commands to docker 
 
     (etc/"vivaria").mkpath
-
   end
+  
+  def post_install
+    # This is helpful for using brew api postinstall and making on-the-fly changes
+
+    src_dir.install buildpath / ".git"
+
+    # Run with brew postinstall vivaria
+    # Idk if this is the best way to do this but it works for now.
+    # Not allowed to edit many files in the prefix directory. Oops.
+
+    # May need to change the docker-compose.override.yml file to use a different project name (ie: the version)
+    # This is not good practice according to brew but I think it's fine.
+
+    # system "#{bin}/viv-setup-docker"
+    # system "#{bin}/viv-setup-cli"
+    
+    # # Set up SSH keys
+    # ssh_key_path = etc/"vivaria/id_rsa"
+    # system "ssh-keygen", "-t", "rsa", "-b", "4096", "-f", ssh_key_path, "-N", ""
+    # chmod 0600, ssh_key_path
+    # chmod 0644, "#{ssh_key_path}.pub"
+    # # Append SSH public key path to .env
+    # File.open(prefix/".env", "a") { |f| f.puts "SSH_PUBLIC_KEY_PATH=#{ssh_key_path}.pub" }
+    # system "viv", "register-ssh-public-key", "#{ssh_key_path}.pub"
+  end
+
 
   # Information displayed after installation
   def caveats
     <<~EOS
       Post-installation instructions:
 
-      To set up and run the Docker server, run:
-        viv setup-docker-compose
+      Add an OPENAI_API_KEY to #{prefix}/<x.y.z>/.env.server
+
+      (Optional) If you want to start task environments containing aux VMs,
+      add a TASK_AWS_REGION, TASK_AWS_ACCESS_KEY_ID, and TASK_AWS_SECRET_ACCESS_KEY to #{prefix}/<x.y.z>/.env.server
 
       For more information, visit:
         https://vivaria.metr.org/
@@ -135,7 +174,7 @@ class Vivaria < Formula
   end
 
   test do
-    # TODO: Make this test work.
+    # TODO: Make this test work. Viv doesn't have a --version flag.
     output = shell_output("#{bin}/viv --version")
     assert_match "vivaria version #{version}", output.strip
   end
