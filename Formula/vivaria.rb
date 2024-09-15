@@ -3,9 +3,9 @@ class Vivaria < Formula
   desc "Task environment setup tool for AI research"
   # AUTHORS: METR <info@metr.org>
   homepage "https://vivaria.metr.org/"
-  url "https://github.com/GatlenCulp/vivaria/archive/refs/tags/v0.1.1.tar.gz"#, tag: "v0.1.0"
+  url "https://github.com/GatlenCulp/vivaria/archive/refs/tags/v0.1.2.tar.gz"#, tag: "v0.1.0"
   version "0.1.0" # TODO: Grab the version from the tag(?)
-  sha256 "3360781d374e010e2b6c7a86b2cc5a91b51d6b2c5337d14788858a719af943d2"
+  sha256 "2ad566ffd8836670dd5a5639b8f30efbbedf0fb76d250315aae9b38085188042"
   license "MIT"
   head "https://github.com/METR/vivaria.git", branch: "main"
 
@@ -17,6 +17,7 @@ class Vivaria < Formula
   depends_on "docker" => :run
   depends_on "docker-compose" => :run
   depends_on "python@3.11"
+  depends_on "rust" => :build # Needed for pydantic
 
   DEV_MODE = false
 
@@ -91,55 +92,30 @@ class Vivaria < Formula
   end
 
   def install
-
+    # Install dependencies and the CLI in a virtualenv
+    venv = virtualenv_create(libexec/"venv", "python3.11")
+    venv.pip_install resources
+    venv.pip_install buildpath/"cli"
+    
+    # Install scripts (places in prefix/bin and HOMEBREW_PREFIX/bin)
+    bin.install libexec / "venv/bin/viv"
+    bin.install "scripts/setup-docker-compose.sh" => "viv-setup-docker-compose"
+    bin.install "scripts/configure-cli-for-docker-compose.sh" => "viv-configure-cli-for-docker-compose"
+    
+    # # Set permissions if necessary
+    # chmod 0755, bin/"viv-setup-docker-compose"
+    # chmod 0755, bin/"viv-configure-cli-for-docker-compose"
+    
     # Copy everything except certain directories
     prefix.install Dir["*"]
     prefix.install Dir[".*"].select { |f| File.file?(f) }
 
-    # Exclude specific directories if they exist
-    rm_rf prefix/".devcontainer"
-    rm_rf prefix/".github"
-    rm_rf prefix/".vscode"
-
-    # Set permissions for scripts
-    # chmod 0755, prefix/"scripts/setup-docker-compose.sh"
-    # chmod 0755, prefix/"scripts/configure-cli-for-docker-compose.sh"
-
-    # These scripts must be run in the prefix directory to generate the files in the correct location
-    Dir.chdir(prefix) do
-      # TODO: Check if libxec is a better way to run these scripts
-      # TODO: Check if it is better to set up docker compose in etc since these are configuration files.
-      system "./scripts/setup-docker-compose.sh"
-      raise "Setup script failed" unless $?.success?
-      
-      # NOTE: Viv must be available via the command line before this is run.
-      # system "./scripts/configure-cli-for-docker-compose.sh"
-      # raise "Configuration script failed" unless $?.success?
-    end
-
-    # def cli_setup
-    #   # TODO: Set up a "developer install" of the CLI. Is this useful or should they just work from a cloned repo?
-    #   Dir.chdir(prefix) do
-
-    #     venv = libexec/"venv"
-    #     ENV["VIRTUAL_ENV"] = venv
-    #     venv.mkpath
-    #     system "python3", "-m", "venv", venv
-      
-    #     with_env(PATH: "#{venv}/bin:#{ENV["PATH"]}") do
-    #       system "#{venv}/bin/pip", "install", "-v", "--no-deps", buildpath/"cli"
-    #     end
-      
-    #     # Create the wrapper script in the bin directory
-    #     (bin/"viv").write <<~EOS
-    #       #!/bin/bash
-    #       VENV_PATH="#{venv}"
-    #       source "$VENV_PATH/bin/activate"
-    #       "$VENV_PATH/bin/viv" "$@"
-    #       deactivate
-    #     EOS
-    #     chmod 0755, bin/"viv"
-    #   end
+    # Clean up unnecessary directories
+    rm_rf ".devcontainer"
+    rm_rf ".github"
+    rm_rf ".vscode"
+    rm_rf "cli" # This is installed in the virtualenv
+    rm_rf "ignore"
 
     (etc/"vivaria").mkpath
 

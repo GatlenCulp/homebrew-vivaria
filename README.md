@@ -3,7 +3,9 @@
 
 `curl -L https://github.com/GatlenCulp/vivaria/archive/refs/tags/v0.1.0.tar.gz | shasum -a 256`
 
-= `eabcf6b3d0d63ba37cd6af03c0566e981d333b5a06fd38dd61102e9f72941ecd`
+= `2ad566ffd8836670dd5a5639b8f30efbbedf0fb76d250315aae9b38085188042`
+
+brew update-python-resources vivaria
 
 Uncertain why this is needed before installing:
 `brew link docker`
