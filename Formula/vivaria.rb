@@ -1,11 +1,18 @@
 class Vivaria < Formula
   include Language::Python::Virtualenv
   desc "Task environment setup tool for AI research"
-  # AUTHORS: METR <info@metr.org>
   homepage "https://vivaria.metr.org/"
-  url "https://github.com/GatlenCulp/vivaria/archive/refs/tags/v0.1.2.tar.gz"#, tag: "v0.1.0"
+
+  # url "https://github.com/GatlenCulp/vivaria/archive/refs/tags/v0.1.2.tar.gz"#, tag: "v0.1.0"
+  # sha256 "2ad566ffd8836670dd5a5639b8f30efbbedf0fb76d250315aae9b38085188042"
+
+  # Need this for .git directory to be included in the installation
+  url "https://github.com/GatlenCulp/vivaria.git",
+      using:    :git,
+      tag:      "v0.1.2"
+      # revision: "abcdef1234567890abcdef1234567890abcdef12"
+  
   version "0.1.0" # TODO: Grab the version from the tag(?)
-  sha256 "2ad566ffd8836670dd5a5639b8f30efbbedf0fb76d250315aae9b38085188042"
   license "MIT"
   head "https://github.com/METR/vivaria.git", branch: "main"
 
@@ -91,6 +98,7 @@ class Vivaria < Formula
     sha256 "e7d814a81dad81e6caf2ec9fdedb284ecc9c73076b62654547cc64ccdcae26e9"
   end
 
+  
   def install
     # Install dependencies and the CLI in a virtualenv
     venv = virtualenv_create(libexec/"venv", "python3.11")
@@ -101,15 +109,15 @@ class Vivaria < Formula
     bin.install libexec / "venv/bin/viv"
     bin.install "scripts/setup-docker-compose.sh" => "viv-setup-docker"
     bin.install "scripts/configure-cli-for-docker-compose.sh" => "viv-setup-cli"
-
+    
     # Install everything in docs as well as the README, CHANGELOG, LICENSE, and CONTRIBUTING
     doc.install Dir["docs/*"]
     doc.install "README.md"
     doc.install "LICENSE"
     doc.install "CONTRIBUTING.md"
-
+    
     # Setup script that combines the two and sets up the environment
-
+    
     # Clean up unnecessary directories
     rm_rf ".devcontainer"
     rm_rf ".github"
@@ -122,10 +130,6 @@ class Vivaria < Formula
     src_dir = prefix/"vivaria"
     src_dir.mkpath
     src_dir.install Dir["*", ".*"].reject { |f| ['.', '..'].include?(File.basename(f)) }
-    # Include .git directory for development
-    src_dir.install ".git"
-    # prefix.install Dir["*"]
-    # prefix.install Dir[".*"].select { |f| File.file?(f) }
 
     # Make viv-docker command available which sends commands to docker 
 
@@ -134,8 +138,8 @@ class Vivaria < Formula
   
   def post_install
     # This is helpful for using brew api postinstall and making on-the-fly changes
-
-    src_dir.install buildpath / ".git"
+    # src_dir = prefix / "vivaria"
+    # src_dir.install buildpath / ".git"
 
     # Run with brew postinstall vivaria
     # Idk if this is the best way to do this but it works for now.
