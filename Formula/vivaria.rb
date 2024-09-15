@@ -106,9 +106,55 @@ class Vivaria < Formula
     venv.pip_install buildpath/"cli"
     
     # Install scripts (places in prefix/bin and HOMEBREW_PREFIX/bin)
+    # vivaria = ui, viv = cli
     bin.install libexec / "venv/bin/viv"
-    bin.install "scripts/setup-docker-compose.sh" => "viv-setup-docker"
-    bin.install "scripts/configure-cli-for-docker-compose.sh" => "viv-setup-cli"
+    bin.install "scripts/setup-docker-compose.sh" => "vivaria-setup"
+    bin.install "scripts/configure-cli-for-docker-compose.sh" => "viv-setup"
+      # Create and install vivarium-start script
+    (bin/"vivaria-start").write <<~EOS
+      #!/bin/bash
+      set -e
+
+      echo "Starting Vivaria..."
+      docker compose up --wait
+
+      echo "Checking if the UI is up..."
+      max_attempts=30
+      attempt=0
+      while ! curl -s http://localhost:4001/health > /dev/null; do
+        attempt=$((attempt+1))
+        if [ $attempt -eq $max_attempts ]; then
+          echo "Error: UI did not come up after $max_attempts attempts. Please check the Docker logs."
+          exit 1
+        fi
+        echo "Waiting for UI to come up... (attempt $attempt/$max_attempts)"
+        sleep 2
+      done
+
+      echo "Vivaria is now running!"
+      echo "Please open https://localhost:4000 in your browser."
+      echo "Note: You may see a 'connection untrusted' warning. This is expected for local development."
+
+      # Open the URL in the default browser
+      if [[ "$OSTYPE" == "darwin"* ]]; then
+        open "https://localhost:4000"
+      elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        xdg-open "https://localhost:4000"
+      else
+        echo "Please open https://localhost:4000 in your browser manually."
+      fi
+    EOS
+
+    # Create and install vivarium-stop script
+    (bin/"vivaria-stop").write <<~EOS
+      #!/bin/bash
+      set -e
+
+      echo "Stopping Vivaria..."
+      docker compose down
+
+      echo "Vivaria has been stopped."
+    EOS
     
     # Install everything in docs as well as the README, CHANGELOG, LICENSE, and CONTRIBUTING
     doc.install Dir["docs/*"]
