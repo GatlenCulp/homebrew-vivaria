@@ -107,7 +107,7 @@ pwd
 cat instructions.txt
 ```
 You should see something like:
->Please find the word whose SHA-256 hash is as follows: 98sdfs923432jsdsdf
+> Please find the word whose SHA-256 hash is as follows: 98sdfs923432jsdsdf
 > Return only the word as your answer.
 
 13.  Write up a `submission.txt` document. The solution to this task is "abandon":
@@ -196,30 +196,30 @@ To uninstall, run `brew uninstall vivaria`. This will not delete your `~/.config
 To update Vivaria to the latest version:
 
 1. Update the Homebrew formulae:
-   ```
+   ```bash
    brew update
    ```
 
 2. Upgrade Vivaria:
-   ```
+   ```bash
    brew upgrade vivaria
    ```
 
 3. Restart the Docker containers:
-   ```
+   ```bash
    docker compose down
    viv docker compose up --detach --wait
    ```
 
 4. Check that the server is running with the new version:
-   ```
+   ```bash
    curl http://localhost:4001/health
    ```
 
 5. Clear your browser cache and refresh the Vivaria web interface.
 
 Note: If you encounter any issues after upgrading, you may need to remove the old Docker images and rebuild:
-```
+```bash
 viv docker compose down --rmi all
 viv docker compose up --detach --wait --build
 ```
@@ -240,24 +240,33 @@ Brew downloads your source and places it in a temporary build directory. This so
 
 GitHub generates these with each release/prerelease when you add a new tag. Add the url and the checksum to the brew install. To get the checksum you can run a command like the one below.
 
-`curl -L https://github.com/GatlenCulp/vivaria/archive/refs/tags/v0.1.0.tar.gz | shasum -a 256`
+```bash
+curl -L https://github.com/GatlenCulp/vivaria/archive/refs/tags/v0.1.0.tar.gz | shasum -a 256
+```
 $\rightarrow$ `2ad566ffd8836670dd5a5639b8f30efbbedf0fb76d250315aae9b38085188042`
 
 **GitHub Repository Clone**
 To use this, you simply link to the repository, include a tag, and the revision which you can get with running something like this in the vivaria repository locally:
-`git rev-parse v0.1.3`
+```bash
+git rev-parse v0.1.3
+```
 $\rightarrow$ `d67cc7894064e45f3459104c0f004fc1bd86612b`
 
 **Why git is used instead**
 Vivaria requires the `.git` repository files and GitHub does not include those in their `tar.gz` packages, so we have opted to use the git clone method.
 
 ```ruby
+class Vivaria < Formula
+  desc "Task environment setup tool for AI research"
+  homepage "https://vivaria.metr.org/"
+  # ...
   # Stable release
   url "https://github.com/GatlenCulp/vivaria.git",
-    # Use git to include .git which is needed for the CLI
-    using:    :git,
-    tag:      "v0.1.3",
-    revision: "d67cc7894064e45f3459104c0f004fc1bd86612b"
+      # Use git to include .git which is needed for the CLI
+      using:    :git,
+      tag:      "v0.1.3",
+      revision: "d67cc7894064e45f3459104c0f004fc1bd86612b"
+end
 ```
 
 ### 05.02 The Python Dependencies
@@ -269,6 +278,8 @@ Python packages are added as [resources](https://rubydoc.brew.sh/Formula#resourc
 ```ruby
 class Vivaria < Formula
   include Language::Python::Virtualenv
+  desc "Task environment setup tool for AI research"
+  homepage "https://vivaria.metr.org/"
   # ...
   resource "idna" do
     url "https://files.pythonhosted.org/packages/00/6f/93e724eafe34e860d15d37a4f72a1511dd37c43a76a8671b22a15029d545/idna-3.9.tar.gz"
@@ -285,6 +296,7 @@ class Vivaria < Formula
     sha256 "3cb0f65d8b4121c1b015c60104a685feb929a29d7cf204387c7f2688c7974690"
   end
   # ...
+end
 ```
 
 These packages are then installed by brew into the the final install path (ex: `/opt/homebrew/Cellar/vivaria/0.1.0`) and placed in the `libexec/venv` directory (`libexec` is for dependent executables not invoked directly by the installing user). The viv cli is also installed as a package into the virtual environment.
@@ -292,12 +304,17 @@ These packages are then installed by brew into the the final install path (ex: `
 ```ruby
 class Vivaria < Formula
   include Language::Python::Virtualenv
-  # ...
+  desc "Task environment setup tool for AI research"
+  homepage "https://vivaria.metr.org/"
+    # ...
   def install
-    # Install dependencies and the CLI in a virtualenv
+      # Install dependencies and the CLI in a virtualenv
     venv = virtualenv_create(libexec/"venv", "python3.11")
     venv.pip_install resources
     venv.pip_install buildpath/"cli"
+      # ...
+  end
+end
 ```
 
 In making the virtual environment and building the package which will automatically make an executable called `viv` in the virtual environment's bin. We then copy this executable to `final_install_path/bin` which contain executables which are symlinked to Brew's bin (ex: `/opt/homebrew/bin/`) which is on the user's path, making the `viv` script available to the user anywhere.
@@ -308,6 +325,8 @@ At this point, the viv-cli is essentially installed, but since the web ui relies
 
 ```ruby
 class Vivaria < Formula
+  desc "Task environment setup tool for AI research"
+  homepage "https://vivaria.metr.org/"
   # ...
   def install
     # ...
@@ -328,7 +347,11 @@ class Vivaria < Formula
     # Copy remaining files to vivaria directory
     src_dir = prefix/"vivaria"
     src_dir.mkpath
-    src_dir.install Dir["*", ".*"].reject { |f| ['.', '..'].include?(File.basename(f)) }
+    dot_files = [".", ".."]
+    src_dir.install Dir["*", ".*"].reject { |f| dot_files.include?(File.basename(f)) }
+    # ...
+  end
+end
 ```
 
 ### 05.04 Debugging
