@@ -19,6 +19,7 @@ For testing purposes and creating installation helper scripts, Gatlen has create
     - [06.03 Copying Everything Over](#0603-copying-everything-over)
     - [06.04 Debugging](#0604-debugging)
     - [06.05 Random Useful Notes](#0605-random-useful-notes)
+    - [06.06 Roadmap](#0606-roadmap)
   - [07 Contact the Maintainer](#07-contact-the-maintainer)
 
 
@@ -210,6 +211,8 @@ A good man-page has yet to be written and may not ever be written but I decided 
 
 If you need to make any edits to the viv cli without editing the repo and reinstalling entirely, I recommend cloning the Vivaria repo, setting up a venv with required packages `mkdir ~/.venvs && python3 -m venv ~/.venvs/viv && source ~/.venvs/viv/bin/activate` then running `pip install -e cli` in the Vivaria project root. If you run `which viv` you should see you are not using the one in homebrew and are instead using the `viv` from your repo. Any updates to the cli will be live as you make them and commands should work normally.
 
+Caveats are info displayed after installation.
+
 To check whether your formula fits brew's formula style you can run `brew audit --eval-all --formula --strict --online vivaria`
 
 Ex:
@@ -240,6 +243,22 @@ gatlenculp/vivaria/vivaria
   * line 195, col 1: Trailing whitespace detected.
   * line 198, col 1: Trailing whitespace detected.
 Error: 22 problems in 1 formula detected.
+```
+
+### 06.06 Roadmap
+
+- [ ] Automatically configure an SSH key for the user to use with viv.
+```ruby
+# Not working, need to adjust
+# Set up SSH keys
+ssh_key_path = etc/"vivaria/id_rsa"
+system "ssh-keygen", "-t", "rsa", "-b", "4096", "-f", ssh_key_path, "-N", ""
+chmod 0600, ssh_key_path
+chmod 0644, "#{ssh_key_path}.pub"
+
+# Append SSH public key path to .env
+File.open(prefix/".env", "a") { |f| f.puts "SSH_PUBLIC_KEY_PATH=#{ssh_key_path}.pub" }
+system "viv", "register-ssh-public-key", "#{ssh_key_path}.pub"
 ```
 
 ## 07 Contact the Maintainer

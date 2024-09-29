@@ -2,29 +2,27 @@ class Vivaria < Formula
   include Language::Python::Virtualenv
   desc "Task environment setup tool for AI research"
   homepage "https://vivaria.metr.org/"
-  license "MIT"
-
   # Stable release
   url "https://github.com/GatlenCulp/vivaria.git",
     # Use git to include .git which is needed for the CLI
     using:    :git,
     tag:      "v0.1.3",
     revision: "d67cc7894064e45f3459104c0f004fc1bd86612b"
-
+  license "MIT"
   # Development release
   head "https://github.com/METR/vivaria.git",
     branch: "main"
-
-  depends_on "rust" => :build # Needed for pydantic
-  depends_on "python@3.11" => :build
-  depends_on "docker"
-  depends_on "docker-compose"
 
   # Automatically check for new versions
   livecheck do
     url :stable
     regex(/^v?(\d+(?:\.\d+)+)$/i)
   end
+
+  depends_on "python@3.11" => :build
+  depends_on "rust" => :build # Needed for pydantic
+  depends_on "docker"
+  depends_on "docker-compose"
 
   # TODO: Add bottle block for pre-built binaries
   # bottle do
@@ -102,9 +100,8 @@ class Vivaria < Formula
     url "https://files.pythonhosted.org/packages/ed/63/22ba4ebfe7430b76388e7cd448d5478814d3032121827c12a2cc287e2260/urllib3-2.2.3.tar.gz"
     sha256 "e7d814a81dad81e6caf2ec9fdedb284ecc9c73076b62654547cc64ccdcae26e9"
   end
-
   # TODO: Add cookiecutter package if accepted.
-  
+
   def install
     # Install manpage
     man1.install buildpath/"cli/viv_cli/viv.1"
@@ -113,59 +110,43 @@ class Vivaria < Formula
     doc.install "README.md"
     doc.install "LICENSE"
     doc.install "CONTRIBUTING.md"
-
     # Install dependencies and the CLI in a virtualenv
     venv = virtualenv_create(libexec/"venv", "python3.11")
     venv.pip_install resources
     venv.pip_install buildpath/"cli"
     bin.install libexec / "venv/bin/viv"
-
+    # TODO: Link Docker
     begin
       docker = Formula["docker"]
       docker.link_overwrite_backup
       docker.link
-    rescue Exception => e
+    rescue => e
       opoo "Failed to link Docker: #{e.message}"
       opoo "You may need to run 'brew link docker' manually if you encounter issues."
-    end 
-    
+    end
     # Clean up unnecessary directories
-    rm_rf ".devcontainer"
-    rm_rf ".github"
-    rm_rf ".vscode"
-    rm_rf "cli"
-    rm_rf "docs"
-    rm_rf "ignore"
-    
+    rm_r ".devcontainer"
+    rm_r ".github"
+    rm_r ".vscode"
+    rm_r "cli"
+    rm_r "docs"
+    rm_r "ignore"
     # Copy remaining files to vivaria directory
     src_dir = prefix/"vivaria"
     src_dir.mkpath
-    src_dir.install Dir["*", ".*"].reject { |f| ['.', '..'].include?(File.basename(f)) }
-
+    dot_files = [".", ".."]
+    src_dir.install Dir["*", ".*"].reject { |f| dot_files.include?(File.basename(f)) }
     # Create etc directory for configuration files (none yet)
     (etc/"vivaria").mkpath
   end
-  
+
   # Run with brew postinstall vivaria
   def post_install
     # TODO: Test if this works
     # Run viv setup (requires user input)
-    system "viv", "register-ssh-public-key", "#{ssh_key_path}.pub"
-
-    # TODO: Set up SSH keys automatically
-    # # Set up SSH keys
-    # ssh_key_path = etc/"vivaria/id_rsa"
-    # system "ssh-keygen", "-t", "rsa", "-b", "4096", "-f", ssh_key_path, "-N", ""
-    # chmod 0600, ssh_key_path
-    # chmod 0644, "#{ssh_key_path}.pub"
-
-    # # Append SSH public key path to .env
-    # File.open(prefix/".env", "a") { |f| f.puts "SSH_PUBLIC_KEY_PATH=#{ssh_key_path}.pub" }
-    # system "viv", "register-ssh-public-key", "#{ssh_key_path}.pub"
+    system "viv", "setup"
   end
 
-
-  # Information displayed after installation
   def caveats
     <<~EOS
       Post-installation instructions:
@@ -184,18 +165,16 @@ class Vivaria < Formula
     EOS
   end
 
+  # TODO: Check if this works
   test do
     # Check if the command-line tool is installed and runs without error
     system bin/"viv", "version"
-    
     # Check if the documentation files are installed
     assert_predicate doc/"README.md", :exist?
     assert_predicate doc/"LICENSE", :exist?
     assert_predicate doc/"CONTRIBUTING.md", :exist?
-    
     # Check if the Vivaria directory is created
     assert_predicate prefix/"vivaria", :directory?
-    
     # Check if the etc directory is created
     assert_predicate etc/"vivaria", :directory?
   end
