@@ -9,7 +9,7 @@ class Vivaria < Formula
   # Need this for .git directory to be included in the installation
   url "https://github.com/GatlenCulp/vivaria.git",
       using:    :git,
-      tag:      "v0.1.2"
+      tag:      "v0.1.3"
       # revision: "abcdef1234567890abcdef1234567890abcdef12"
   
   version "0.1.0" # TODO: Grab the version from the tag(?)
@@ -18,9 +18,11 @@ class Vivaria < Formula
 
   # TODO: Make these options work
   # option "with-dev-mode", "Install Vivaria for development of the software itself."
+  # Dev mode should use pip install -e . instead of pip install . and install pnpm and run pnpm install
   # option "without-cli", "Only install the Docker setup scripts and not the CLI."
 
   # This was fixed after I ran `brew link docker`
+  # TODO: Fix brew link docker
   depends_on "docker" => :run
   depends_on "docker-compose" => :run
   depends_on "python@3.11"
@@ -104,12 +106,23 @@ class Vivaria < Formula
     venv = virtualenv_create(libexec/"venv", "python3.11")
     venv.pip_install resources
     venv.pip_install buildpath/"cli"
+
+    # begin
+    #   docker = Formula["docker"]
+    #   docker.link_overwrite_backup
+    #   docker.link
+    # rescue Exception => e
+    #   opoo "Failed to link Docker: #{e.message}"
+    #   opoo "You may need to run 'brew link docker' manually if you encounter issues."
+    # end
     
     # Install scripts (places in prefix/bin and HOMEBREW_PREFIX/bin)
     # vivaria = ui, viv = cli
     bin.install libexec / "venv/bin/viv"
     bin.install "scripts/setup-docker-compose.sh" => "vivaria-setup"
     bin.install "scripts/configure-cli-for-docker-compose.sh" => "viv-setup"
+
+    # TODO: Delete below if not needed
       # Create and install vivarium-start script
     (bin/"vivaria-start").write <<~EOS
       #!/bin/bash
@@ -213,6 +226,7 @@ class Vivaria < Formula
     <<~EOS
       Post-installation instructions:
 
+      # LLM-TASK: Automatically insert the version into the path below
       Add an OPENAI_API_KEY to #{prefix}/<x.y.z>/.env.server
 
       (Optional) If you want to start task environments containing aux VMs,
@@ -224,8 +238,9 @@ class Vivaria < Formula
   end
 
   test do
-    # TODO: Make this test work. Viv doesn't have a --version flag.
-    output = shell_output("#{bin}/viv --version")
-    assert_match "vivaria version #{version}", output.strip
+    # TODO: Later, 
+    # LLM-TASK: Write a test that makes sure running "viv" doesn't throw an error
+    #
+    # LLM-TASK: Recommend other tests to write. Maybe see just check if files exist?
   end
 end
