@@ -2,33 +2,36 @@ class Vivaria < Formula
   include Language::Python::Virtualenv
   desc "Task environment setup tool for AI research"
   homepage "https://vivaria.metr.org/"
-
-  # url "https://github.com/GatlenCulp/vivaria/archive/refs/tags/v0.1.2.tar.gz"#, tag: "v0.1.0"
-  # sha256 "2ad566ffd8836670dd5a5639b8f30efbbedf0fb76d250315aae9b38085188042"
-
-  # Need this for .git directory to be included in the installation
-  url "https://github.com/GatlenCulp/vivaria.git",
-      using:    :git,
-      tag:      "v0.1.3"
-      # revision: "abcdef1234567890abcdef1234567890abcdef12"
-  
-  version "0.1.0" # TODO: Grab the version from the tag(?)
   license "MIT"
-  head "https://github.com/METR/vivaria.git", branch: "main"
 
-  # TODO: Make these options work
-  # option "with-dev-mode", "Install Vivaria for development of the software itself."
-  # Dev mode should use pip install -e . instead of pip install . and install pnpm and run pnpm install
-  # option "without-cli", "Only install the Docker setup scripts and not the CLI."
+  # Stable release
+  url "https://github.com/GatlenCulp/vivaria.git",
+    # Use git to include .git which is needed for the CLI
+    using:    :git,
+    tag:      "v0.1.3",
+    revision: "d67cc7894064e45f3459104c0f004fc1bd86612b"
 
-  # This was fixed after I ran `brew link docker`
-  # TODO: Fix brew link docker
-  depends_on "docker" => :run
-  depends_on "docker-compose" => :run
-  depends_on "python@3.11"
+  # Development release
+  head "https://github.com/METR/vivaria.git",
+    branch: "main"
+
   depends_on "rust" => :build # Needed for pydantic
+  depends_on "python@3.11" => :build
+  depends_on "docker"
+  depends_on "docker-compose"
 
-  DEV_MODE = false
+  # Automatically check for new versions
+  livecheck do
+    url :stable
+    regex(/^v?(\d+(?:\.\d+)+)$/i)
+  end
+
+  # TODO: Add bottle block for pre-built binaries
+  # bottle do
+  #   ...
+  # end
+
+  # Define python dependencies to be installed into the virtualenv
 
   resource "annotated-types" do
     url "https://files.pythonhosted.org/packages/ee/67/531ea369ba64dcff5ec9c3402f9f51bf748cec26dde048a2f973a4eea7f5/annotated_types-0.7.0.tar.gz"
@@ -100,89 +103,38 @@ class Vivaria < Formula
     sha256 "e7d814a81dad81e6caf2ec9fdedb284ecc9c73076b62654547cc64ccdcae26e9"
   end
 
+  # TODO: Add cookiecutter package if accepted.
   
   def install
-    # Install dependencies and the CLI in a virtualenv
-    venv = virtualenv_create(libexec/"venv", "python3.11")
-    venv.pip_install resources
-    venv.pip_install buildpath/"cli"
-
-    # begin
-    #   docker = Formula["docker"]
-    #   docker.link_overwrite_backup
-    #   docker.link
-    # rescue Exception => e
-    #   opoo "Failed to link Docker: #{e.message}"
-    #   opoo "You may need to run 'brew link docker' manually if you encounter issues."
-    # end
-    
-    # Install scripts (places in prefix/bin and HOMEBREW_PREFIX/bin)
-    # vivaria = ui, viv = cli
-    bin.install libexec / "venv/bin/viv"
-    bin.install "scripts/setup-docker-compose.sh" => "vivaria-setup"
-    bin.install "scripts/configure-cli-for-docker-compose.sh" => "viv-setup"
-
-    # TODO: Delete below if not needed
-      # Create and install vivarium-start script
-    (bin/"vivaria-start").write <<~EOS
-      #!/bin/bash
-      set -e
-
-      echo "Starting Vivaria..."
-      docker compose up --wait
-
-      echo "Checking if the UI is up..."
-      max_attempts=30
-      attempt=0
-      while ! curl -s http://localhost:4001/health > /dev/null; do
-        attempt=$((attempt+1))
-        if [ $attempt -eq $max_attempts ]; then
-          echo "Error: UI did not come up after $max_attempts attempts. Please check the Docker logs."
-          exit 1
-        fi
-        echo "Waiting for UI to come up... (attempt $attempt/$max_attempts)"
-        sleep 2
-      done
-
-      echo "Vivaria is now running!"
-      echo "Please open https://localhost:4000 in your browser."
-      echo "Note: You may see a 'connection untrusted' warning. This is expected for local development."
-
-      # Open the URL in the default browser
-      if [[ "$OSTYPE" == "darwin"* ]]; then
-        open "https://localhost:4000"
-      elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        xdg-open "https://localhost:4000"
-      else
-        echo "Please open https://localhost:4000 in your browser manually."
-      fi
-    EOS
-
-    # Create and install vivarium-stop script
-    (bin/"vivaria-stop").write <<~EOS
-      #!/bin/bash
-      set -e
-
-      echo "Stopping Vivaria..."
-      docker compose down
-
-      echo "Vivaria has been stopped."
-    EOS
-    
-    # Install everything in docs as well as the README, CHANGELOG, LICENSE, and CONTRIBUTING
+    # Install manpage
+    man1.install buildpath/"cli/viv_cli/viv.1"
+    # Install documentation
     doc.install Dir["docs/*"]
     doc.install "README.md"
     doc.install "LICENSE"
     doc.install "CONTRIBUTING.md"
-    
-    # Setup script that combines the two and sets up the environment
+
+    # Install dependencies and the CLI in a virtualenv
+    venv = virtualenv_create(libexec/"venv", "python3.11")
+    venv.pip_install resources
+    venv.pip_install buildpath/"cli"
+    bin.install libexec / "venv/bin/viv"
+
+    begin
+      docker = Formula["docker"]
+      docker.link_overwrite_backup
+      docker.link
+    rescue Exception => e
+      opoo "Failed to link Docker: #{e.message}"
+      opoo "You may need to run 'brew link docker' manually if you encounter issues."
+    end 
     
     # Clean up unnecessary directories
     rm_rf ".devcontainer"
     rm_rf ".github"
     rm_rf ".vscode"
-    rm_rf "cli" # This is installed in the virtualenv
-    rm_rf "docs" # This is installed in the doc directory
+    rm_rf "cli"
+    rm_rf "docs"
     rm_rf "ignore"
     
     # Copy remaining files to vivaria directory
@@ -190,31 +142,23 @@ class Vivaria < Formula
     src_dir.mkpath
     src_dir.install Dir["*", ".*"].reject { |f| ['.', '..'].include?(File.basename(f)) }
 
-    # Make viv-docker command available which sends commands to docker 
-
+    # Create etc directory for configuration files (none yet)
     (etc/"vivaria").mkpath
   end
   
+  # Run with brew postinstall vivaria
   def post_install
-    # This is helpful for using brew api postinstall and making on-the-fly changes
-    # src_dir = prefix / "vivaria"
-    # src_dir.install buildpath / ".git"
+    # TODO: Test if this works
+    # Run viv setup (requires user input)
+    system "viv", "register-ssh-public-key", "#{ssh_key_path}.pub"
 
-    # Run with brew postinstall vivaria
-    # Idk if this is the best way to do this but it works for now.
-    # Not allowed to edit many files in the prefix directory. Oops.
-
-    # May need to change the docker-compose.override.yml file to use a different project name (ie: the version)
-    # This is not good practice according to brew but I think it's fine.
-
-    # system "#{bin}/viv-setup-docker"
-    # system "#{bin}/viv-setup-cli"
-    
+    # TODO: Set up SSH keys automatically
     # # Set up SSH keys
     # ssh_key_path = etc/"vivaria/id_rsa"
     # system "ssh-keygen", "-t", "rsa", "-b", "4096", "-f", ssh_key_path, "-N", ""
     # chmod 0600, ssh_key_path
     # chmod 0644, "#{ssh_key_path}.pub"
+
     # # Append SSH public key path to .env
     # File.open(prefix/".env", "a") { |f| f.puts "SSH_PUBLIC_KEY_PATH=#{ssh_key_path}.pub" }
     # system "viv", "register-ssh-public-key", "#{ssh_key_path}.pub"
@@ -226,11 +170,14 @@ class Vivaria < Formula
     <<~EOS
       Post-installation instructions:
 
-      # LLM-TASK: Automatically insert the version into the path below
-      Add an OPENAI_API_KEY to #{prefix}/<x.y.z>/.env.server
+      1. Run the following command to set up Vivaria:
+         viv setup
 
-      (Optional) If you want to start task environments containing aux VMs,
-      add a TASK_AWS_REGION, TASK_AWS_ACCESS_KEY_ID, and TASK_AWS_SECRET_ACCESS_KEY to #{prefix}/<x.y.z>/.env.server
+         This will prompt you for your OpenAI API key and configure it properly.
+
+      2. (Optional) If you want to start task environments containing aux VMs,
+         you'll need to configure AWS credentials. Run:
+         viv setup aws
 
       For more information, visit:
         https://vivaria.metr.org/
@@ -238,9 +185,18 @@ class Vivaria < Formula
   end
 
   test do
-    # TODO: Later, 
-    # LLM-TASK: Write a test that makes sure running "viv" doesn't throw an error
-    #
-    # LLM-TASK: Recommend other tests to write. Maybe see just check if files exist?
+    # Check if the command-line tool is installed and runs without error
+    system bin/"viv", "version"
+    
+    # Check if the documentation files are installed
+    assert_predicate doc/"README.md", :exist?
+    assert_predicate doc/"LICENSE", :exist?
+    assert_predicate doc/"CONTRIBUTING.md", :exist?
+    
+    # Check if the Vivaria directory is created
+    assert_predicate prefix/"vivaria", :directory?
+    
+    # Check if the etc directory is created
+    assert_predicate etc/"vivaria", :directory?
   end
 end

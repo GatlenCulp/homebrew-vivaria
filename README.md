@@ -1,51 +1,249 @@
-# GatlenCulp Vivarium
-`https://github.com/GatlenCulp/vivaria/archive/refs/tags/v0.1.0.tar.gz`
+# homebrew-vivaria
+
+**WARNING: This is currently a pre-production Forumla that has not been thoroughly tested and which installs a currently non-official version of Vivaria**
+
+[Vivaria](https://vivaria.metr.org/) is METR's tool for running evaluations and conducting agent elicitation research. This package contains a web app which is used for running and organzing evaluations as well as a command line interface to aid in the development of tasks. More information can be found on the website [here](https://vivaria.metr.org/).
+
+For testing purposes and creating installation helper scripts, Gatlen has created [his own fork of Vivaria](https://github.com/GatlenCulp/vivaria/) which this installs.
+
+- [homebrew-vivaria](#homebrew-vivaria)
+  - [01 Setup](#01-setup)
+    - [01.01 Installation](#0101-installation)
+    - [02 Testing](#02-testing)
+  - [03 Uninstalling](#03-uninstalling)
+  - [04 Updating](#04-updating)
+  - [05 Known Issues](#05-known-issues)
+  - [06 Developing and Maintaining this Formula](#06-developing-and-maintaining-this-formula)
+    - [06.01 The Source](#0601-the-source)
+    - [06.02 The Python Dependencies](#0602-the-python-dependencies)
+    - [06.03 Copying Everything Over](#0603-copying-everything-over)
+    - [06.04 Debugging](#0604-debugging)
+    - [06.05 Random Useful Notes](#0605-random-useful-notes)
+  - [07 Contact the Maintainer](#07-contact-the-maintainer)
+
+
+## 01 Setup
+
+### 01.01 Installation
+1. Tap this repository
+`brew tap GatlenCulp/vivaria`
+2. Install Vivaria
+`brew install vivaria`
+3. Run the post-installation setup (This will ask you for a valid [OpenAI API Key](https://medium.com/@lorenzozar/how-to-get-your-own-openai-api-key-f4d44e60c327)).
+*Be cautious running this command multiple times as it will overwrite your current configuration and will require you to follow all the instructions from here onward*
+`viv setup`
+1. Open docker
+`open -a Docker`
+1. Build and run the server images (This may take a while)
+`viv docker compose up --detach --wait`
+
+### 02 Testing
+6. Test that the server is up
+`docker compose ps` (You should see a list of containers)
+`curl http://localhost:4001/health` (You should see a JSON response `{...TODO...}`)
+7. Open the Vivaria web interface at https://localhost:4000/ and continue past the "insecure connection" warning.
+8. The website will prompt you for your `ACCESS_TOKEN` and `ID_TOKEN` from `.env.server`
+
+## 03 Uninstalling
+
+To uninstall, run `brew uninstall vivaria`. This will not delete your `~/.config/viv-cli/` directory. That must be removed manually.
+
+## 04 Updating
+
+To update Vivaria to the latest version:
+
+1. Update the Homebrew formulae:
+   ```
+   brew update
+   ```
+
+2. Upgrade Vivaria:
+   ```
+   brew upgrade vivaria
+   ```
+
+3. Restart the Docker containers:
+   ```
+   docker compose down
+   viv docker compose up --detach --wait
+   ```
+
+4. Check that the server is running with the new version:
+   ```
+   curl http://localhost:4001/health
+   ```
+
+5. Clear your browser cache and refresh the Vivaria web interface.
+
+Note: If you encounter any issues after upgrading, you may need to remove the old Docker images and rebuild:
+```
+viv docker compose down --rmi all
+viv docker compose up --detach --wait --build
+```
+
+## 05 Known Issues
+
+**ISSUE: Install failed due to docker**
+This may be fixed by running `brew link docker` and trying the installation again.
+
+---
+## 06 Developing and Maintaining this Formula
+
+### 06.01 The Source
+
+Brew downloads your source and places it in a temporary build directory. This source is commonly pulled in two different ways.
+
+**tar.gz compressed file**
+
+GitHub generates these with each release/prerelease when you add a new tag. Add the url and the checksum to the brew install. To get the checksum you can run a command like the one below.
 
 `curl -L https://github.com/GatlenCulp/vivaria/archive/refs/tags/v0.1.0.tar.gz | shasum -a 256`
+$\rightarrow$ `2ad566ffd8836670dd5a5639b8f30efbbedf0fb76d250315aae9b38085188042`
 
-= `2ad566ffd8836670dd5a5639b8f30efbbedf0fb76d250315aae9b38085188042`
+**GitHub Repository Clone**
+To use this, you simply link to the repository, include a tag, and the revision which you can get with running something like this in the vivaria repository locally:
+`git rev-parse v0.1.3`
+$\rightarrow$ `d67cc7894064e45f3459104c0f004fc1bd86612b`
 
-brew update-python-resources vivaria
+**Why git is used instead**
+Vivaria requires the `.git` repository files and GitHub does not include those in their `tar.gz` packages, so we have opted to use the git clone method.
 
-Uncertain why this is needed before installing:
-`brew link docker`
+```ruby
+  # Stable release
+  url "https://github.com/GatlenCulp/vivaria.git",
+    # Use git to include .git which is needed for the CLI
+    using:    :git,
+    tag:      "v0.1.3",
+    revision: "d67cc7894064e45f3459104c0f004fc1bd86612b"
+```
 
+### 06.02 The Python Dependencies
+
+Brew has a light policy to not allow you to use the internet during the installation process, which is a problem for pip installing the packages necessary for Vivaria. Luckily, Brew has a decent interface for managing Python packages and setting up a virtual environment. More information can be found here: [https://docs.brew.sh/Python-for-Formula-Authors](https://docs.brew.sh/Python-for-Formula-Authors).
+
+Python packages are added as [resources](https://rubydoc.brew.sh/Formula#resource-class_method) within the formula, linking directly to their `.tar.gz` package. Luckily, you don't need to track down all the needed packages by hand and can instead add them directly to your formula from the [`vivaria/cli/pyproject.toml`](https://github.com/GatlenCulp/vivaria/tree/main/cli) with `brew update-python-resources vivaria`.
+
+```ruby
+class Vivaria < Formula
+  include Language::Python::Virtualenv
+  # ...
+  resource "idna" do
+    url "https://files.pythonhosted.org/packages/00/6f/93e724eafe34e860d15d37a4f72a1511dd37c43a76a8671b22a15029d545/idna-3.9.tar.gz"
+    sha256 "e5c5dafde284f26e9e0f28f6ea2d6400abd5ca099864a67f576f3981c6476124"
+  end
+
+  resource "pydantic" do
+    url "https://files.pythonhosted.org/packages/14/15/3d989541b9c8128b96d532cfd2dd10131ddcc75a807330c00feb3d42a5bd/pydantic-2.9.1.tar.gz"
+    sha256 "1363c7d975c7036df0db2b4a61f2e062fbc0aa5ab5f2772e0ffc7191a4f4bce2"
+  end
+
+  resource "pydantic-core" do
+    url "https://files.pythonhosted.org/packages/5c/cc/07bec3fb337ff80eacd6028745bd858b9642f61ee58cfdbfb64451c1def0/pydantic_core-2.23.3.tar.gz"
+    sha256 "3cb0f65d8b4121c1b015c60104a685feb929a29d7cf204387c7f2688c7974690"
+  end
+  # ...
+```
+
+These packages are then installed by brew into the the final install path (ex: `/opt/homebrew/Cellar/vivaria/0.1.0`) and placed in the `libexec/venv` directory (`libexec` is for dependent executables not invoked directly by the installing user). The viv cli is also installed as a package into the virtual environment.
+
+```ruby
+class Vivaria < Formula
+  include Language::Python::Virtualenv
+  # ...
+  def install
+    # Install dependencies and the CLI in a virtualenv
+    venv = virtualenv_create(libexec/"venv", "python3.11")
+    venv.pip_install resources
+    venv.pip_install buildpath/"cli"
+```
+
+In making the virtual environment and building the package which will automatically make an executable called `viv` in the virtual environment's bin. We then copy this executable to `final_install_path/bin` which contain executables which are symlinked to Brew's bin (ex: `/opt/homebrew/bin/`) which is on the user's path, making the `viv` script available to the user anywhere.
+
+### 06.03 Copying Everything Over
+
+At this point, the viv-cli is essentially installed, but since the web ui relies on typescript and docker files, we need to maintain a large chunk of the original project files in `final_install_path`. In the rest of the script, we install all the docs into the folder brew expects to find them (`final_install_path/share/doc`), delete everything we no longer need, and copy the rest over from the build path to the final install path under `vivaria`.
+
+```ruby
+class Vivaria < Formula
+  # ...
+  def install
+    # ...
+    # Install documentation
+    doc.install Dir["docs/*"]
+    doc.install "README.md"
+    doc.install "LICENSE"
+    doc.install "CONTRIBUTING.md"
+
+    # Clean up unnecessary directories
+    rm_rf ".devcontainer"
+    rm_rf ".github"
+    rm_rf ".vscode"
+    rm_rf "cli"
+    rm_rf "docs"
+    rm_rf "ignore"
+
+    # Copy remaining files to vivaria directory
+    src_dir = prefix/"vivaria"
+    src_dir.mkpath
+    src_dir.install Dir["*", ".*"].reject { |f| ['.', '..'].include?(File.basename(f)) }
+```
+
+### 06.04 Debugging
+
+To install the formula with debug mode and receive more verbose errors during developing the formula, you can run:
 `brew install --formula --debug --verbose ./Formula/vivaria.rb`
 
+Similarly for uninstalling:
 `brew uninstall --debug --verbose vivaria`
 
-`brew cleanup`
-
+I was attempting to set up a Ruby debugger w/ intellisense in VSCode but it wasn't working:
 `gem install ruby-lsp`
 `gem install debug`
 
-https://rubydoc.brew.sh/Formula#homepage%3D-class_method
+### 06.05 Random Useful Notes
 
-TODO: Use for language specific dependencies (resources):
-https://rubydoc.brew.sh/Formula#resource-class_method
-Ex: https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/j/jrnl.rb
+`echo $(brew --prefix vivaria)` can be used to get the [opt-prefix](https://docs.brew.sh/Manpage) for Vivaria. This returns a static path to a symlinked folder pointing to the most recent version of vivaria.
 
-TODO: Add man pages to `prefix/share/man`
-TODO: Add docs to `prefix/share/doc/<name>`
+The [Homebrew Ruby API documentation](https://rubydoc.brew.sh/Formula#homepage%3D-class_method) is very helpful as well as the the [higher-level Homebrew documentation](https://docs.brew.sh/).
 
-TODO: Make a `.gitattributes` file to exclude files from releases for install.
+A good man-page has yet to be written and may not ever be written but I decided to draft a simple incomplete one with a warning. This may possibly lead to more confusion, but I've decided to do it anyways for the experience and to see if it may be helpful to continue developing.
 
-TODO: `brew audit --strict --online` to check whether this fits the brew style guide.
+If you need to make any edits to the viv cli without editing the repo and reinstalling entirely, I recommend cloning the Vivaria repo, setting up a venv with required packages `mkdir ~/.venvs && python3 -m venv ~/.venvs/viv && source ~/.venvs/viv/bin/activate` then running `pip install -e cli` in the Vivaria project root. If you run `which viv` you should see you are not using the one in homebrew and are instead using the `viv` from your repo. Any updates to the cli will be live as you make them and commands should work normally.
 
-I really should have just read the docs.
+To check whether your formula fits brew's formula style you can run `brew audit --eval-all --formula --strict --online vivaria`
 
-## How do I install these formulae?
+Ex:
+```bash
+brew audit --eval-all --formula --strict --online vivaria
 
-`brew tap gatlenculp/vivaria` and then `brew install vivaria`.
+gatlenculp/vivaria/vivaria
+  * line 8, col 3: `url` (line 8) should be put before `license` (line 5)
+  * line 19, col 3: dependency "python@3.11" (line 19) should be put before dependency "rust" (line 21)
+  * line 107, col 1: Trailing whitespace detected.
+  * line 127, col 5: Avoid rescuing the `Exception` class. Perhaps you meant to rescue `StandardError`?
+  * line 130, col 8: Trailing whitespace detected.
+  * line 131, col 1: Trailing whitespace detected.
+  * line 133, col 5: Use `rm` or `rm_r` instead of `rm_rf`, `rm_f`, or `rmtree`.
+  * line 134, col 5: Use `rm` or `rm_r` instead of `rm_rf`, `rm_f`, or `rmtree`.
+  * line 135, col 5: Use `rm` or `rm_r` instead of `rm_rf`, `rm_f`, or `rmtree`.
+  * line 136, col 5: Use `rm` or `rm_r` instead of `rm_rf`, `rm_f`, or `rmtree`.
+  * line 137, col 5: Use `rm` or `rm_r` instead of `rm_rf`, `rm_f`, or `rmtree`.
+  * line 138, col 5: Use `rm` or `rm_r` instead of `rm_rf`, `rm_f`, or `rmtree`.
+  * line 139, col 1: Trailing whitespace detected.
+  * line 143, col 49: Avoid immutable Array literals in loops. It is better to extract it into a local variable or a constant.
+  * line 143, col 50: Prefer double-quoted strings unless you need single quotes to avoid extra backslashes for escaping.
+  * line 143, col 55: Prefer double-quoted strings unless you need single quotes to avoid extra backslashes for escaping.
+  * line 148, col 1: Trailing whitespace detected.
+  * line 167, col 1: Extra blank line detected.
+  * line 169, col 3: Expected 1 empty line between method definitions; found 2.
+  * line 190, col 1: Trailing whitespace detected.
+  * line 195, col 1: Trailing whitespace detected.
+  * line 198, col 1: Trailing whitespace detected.
+Error: 22 problems in 1 formula detected.
+```
 
-<!-- Or, in a [`brew bundle`](https://github.com/Homebrew/homebrew-bundle) `Brewfile`: -->
+## 07 Contact the Maintainer
 
-## Documentation
-
-`brew help`, `man brew` or check [Homebrew's documentation](https://docs.brew.sh).
-
-## Project notes
-
-I am creating a brew formula for [Vivaria](https://vivaria.metr.org/), Vivaria is METR's tool for running evaluations and conducting agent elicitation research. Vivaria is a web application with which users can interact using a web UI and a command-line interface.
-
-I have created my own fork to install and test from located at [https://github.com/GatlenCulp/vivaria/](https://github.com/GatlenCulp/vivaria/)
+Gatlen Culp, METR Contractor
+Email: gatlen.culp@metr.org
+Portfolio: [gatlen.notion.site](https://gatlen.notion.site)
