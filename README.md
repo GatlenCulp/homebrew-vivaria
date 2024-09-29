@@ -387,6 +387,11 @@ gatlenculp/vivaria/vivaria
 Error: 22 problems in 1 formula detected.
 ```
 
+The style fixer is also helpful:
+```bash
+brew style --fix gatlenculp/vivaria
+```
+
 ### 05.06 Roadmap
 
 - [ ] Automatically configure an SSH key for the user to use with viv.
