@@ -13,7 +13,7 @@ cd "${PROJECT_ROOT}/"
 if ! docker compose up --wait 2>&1
 then        # <--- [CHANGED] Removed the specific error check to catch all errors
   echo "Error: Docker compose failed to start." # <--- [CHANGED] Updated to a more general error message
-  echo "Please ensure you are running this command from the correct directory ($(pwd))."
+  echo "Please ensure you are running this command from the correct directory ($(pwd || true))."
   echo "Check the Docker logs for more details." # <--- [NEW] Added to provide more guidance
   exit 1
 else
