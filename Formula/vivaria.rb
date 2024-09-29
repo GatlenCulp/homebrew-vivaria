@@ -1,13 +1,13 @@
+require "English"
 class Vivaria < Formula
   include Language::Python::Virtualenv
   desc "Task environment setup tool for AI research"
   homepage "https://vivaria.metr.org/"
   # Stable release
   url "https://github.com/GatlenCulp/vivaria.git",
-    # Use git to include .git which is needed for the CLI
     using:    :git,
-    tag:      "v0.1.3",
-    revision: "d67cc7894064e45f3459104c0f004fc1bd86612b"
+    tag:      "v0.1.4",
+    revision: "c80bc6d1986d5c6ae9dc2264ca608dc686583cf0"
   license "MIT"
   # Development release
   head "https://github.com/METR/vivaria.git",
@@ -115,15 +115,6 @@ class Vivaria < Formula
     venv.pip_install resources
     venv.pip_install buildpath/"cli"
     bin.install libexec / "venv/bin/viv"
-    # TODO: Link Docker
-    begin
-      docker = Formula["docker"]
-      docker.link_overwrite_backup
-      docker.link
-    rescue => e
-      opoo "Failed to link Docker: #{e.message}"
-      opoo "You may need to run 'brew link docker' manually if you encounter issues."
-    end
     # Clean up unnecessary directories
     rm_r ".devcontainer"
     rm_r ".github"
@@ -140,11 +131,73 @@ class Vivaria < Formula
     (etc/"vivaria").mkpath
   end
 
-  # Run with brew postinstall vivaria
   def post_install
-    # TODO: Test if this works
-    # Run viv setup (requires user input)
-    system "viv", "setup"
+    # Prompt user for OpenAI API key and run viv setup
+    api_key = nil
+
+    while api_key.nil?
+      ohai "Please enter your OpenAI API key:"
+      api_key = $stdin.gets.chomp
+
+      next if api_key.start_with?("sk-") && api_key.length == 51
+
+      opoo "The provided OpenAI API key doesn't appear to be valid."
+      puts "Expected to start with 'sk-' and have length 51"
+      puts "Please try again."
+      api_key = nil
+    end
+
+    ohai "Running viv setup command..."
+    Utils.safe_popen_read("viv", "setup", "--openai-api-key", api_key, err: :out)
+
+    # puts output
+
+    unless $CHILD_STATUS.success?
+      opoo "viv setup command failed. Please check the output above for any errors."
+      puts "viv is installed, but it may not work properly. Please try running 'viv setup' directly."
+      exit 1
+    end
+
+    ohai "viv setup command completed successfully."
+
+    # Prompt user to build Docker images
+    ohai "Would you like to build the required Vivaria Docker images now? (This may take 3-8 minutes) [y/N]"
+    response = $stdin.gets.chomp.downcase
+
+    if response == "y"
+      # ohai "Opening Docker..."
+      # case RUBY_PLATFORM
+      # when /darwin/
+      #   system "open", "-a", "Docker"
+      # when /linux/
+      #   system "systemctl", "--user", "start", "docker-desktop"
+      # when /mingw|mswin/
+      #   system "start", "Docker Desktop"
+      # else
+      #   opoo "Unsupported platform for automatic Docker startup. Please ensure Docker is running manually."
+      # end
+
+      # # Wait for Docker to start
+      # ohai "Waiting for Docker to start..."
+      # 30.times do
+      #   if system("docker info > /dev/null 2>&1")
+      #     break
+      #   end
+      #   sleep 1
+      # end
+
+      ohai "Building Docker images..."
+      system "viv", "docker", "compose", "build"
+
+      if $CHILD_STATUS.success?
+        ohai "Docker images built successfully."
+      else
+        opoo "Failed to build Docker images. You can try building them later with 'viv docker compose build'."
+      end
+
+    else
+      ohai "Skipping Docker image build. You can build them later with 'viv docker compose build'."
+    end
   end
 
   def caveats

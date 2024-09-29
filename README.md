@@ -2,6 +2,8 @@
 
 **WARNING: This is currently a pre-production Forumla that has not been thoroughly tested and which installs a currently non-official version of Vivaria**
 
+![Homebrew Tests](https://github.com/gatlenculp/homebrew-vivaria/actions/workflows/tests.yml/badge.svg)
+
 ![./assets/metr_logo.svg](./assets/metr_logo.svg)
 ![./assets/logo.png](./assets/logo.png)
 
@@ -47,18 +49,18 @@ brew tap GatlenCulp/vivaria
 brew install vivaria
 ```
 
-3. Run the post-installation setup (This will ask you for a valid [OpenAI API Key](https://medium.com/@lorenzozar/how-to-get-your-own-openai-api-key-f4d44e60c327)).
+3. (If the brew postinstall failed) Run the post-installation setup (This will ask you for a valid [OpenAI API Key](https://medium.com/@lorenzozar/how-to-get-your-own-openai-api-key-f4d44e60c327)).
 *Be cautious running this command multiple times as it will overwrite your current configuration and will require you to follow all the instructions from here onward*
 ```bash
 viv setup
 ```
 
-4. Open docker
+4. (If the brew postinstall failed) Open docker
 ```bash
 open -a Docker
 ```
 
-5. Build and run the server images (This may take a while)
+5. (If the brew postinstall failed) Build and run the server images (This may take a while)
 ```bash
 viv docker compose up --detach --wait
 ```
@@ -415,6 +417,8 @@ The style fixer is also helpful:
 brew style --fix gatlenculp/vivaria
 ```
 
+As well as all other tests included in the `.github/workflows/` files.
+
 ### 05.06 Roadmap
 
 - [ ] Automatically configure an SSH key for the user to use with viv.
@@ -430,6 +434,9 @@ chmod 0644, "#{ssh_key_path}.pub"
 File.open(prefix/".env", "a") { |f| f.puts "SSH_PUBLIC_KEY_PATH=#{ssh_key_path}.pub" }
 system "viv", "register-ssh-public-key", "#{ssh_key_path}.pub"
 ```
+- [ ] Fix having to do `brew link docker` for each install. (Possibly only on my computer)
+- [ ] Run viv setup automatically
+- [ ] Make viv setup
 
 ## 06 Contact the Maintainer
 
