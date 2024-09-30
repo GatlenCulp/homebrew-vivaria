@@ -6,8 +6,8 @@ class Vivaria < Formula
   # Stable release
   url "https://github.com/GatlenCulp/vivaria.git",
     using:    :git,
-    tag:      "v0.1.4",
-    revision: "c80bc6d1986d5c6ae9dc2264ca608dc686583cf0"
+    tag:      "v0.1.5",
+    revision: "4ed7a79da3e79f9d48a43cb362ae272ec3259f72"
   license "MIT"
   # Development release
   head "https://github.com/METR/vivaria.git",
@@ -204,12 +204,7 @@ class Vivaria < Formula
     <<~EOS
       Post-installation instructions:
 
-      1. Run the following command to set up Vivaria:
-         viv setup
-
-         This will prompt you for your OpenAI API key and configure it properly.
-
-      2. (Optional) If you want to start task environments containing aux VMs,
+        (Optional) If you want to start task environments containing aux VMs,
          you'll need to configure AWS credentials. Run:
          viv setup aws
 

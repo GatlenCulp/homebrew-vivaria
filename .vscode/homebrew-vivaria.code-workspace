@@ -1,9 +1,6 @@
 {
     "folders": [
         {
-            "path": "../../../../../Cellar/vivaria/0.1.0"
-        },
-        {
             "path": "../../../../../../../Users/gat/work/mp4-tasks"
         },
         {
@@ -14,6 +11,9 @@
         },
         {
             "path": "../../../../../../../Users/gat/.config/viv-cli"
+        },
+        {
+            "path": "../../../../../Cellar/vivaria/0.1.4"
         }
     ],
     "settings": {

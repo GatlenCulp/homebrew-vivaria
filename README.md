@@ -168,7 +168,7 @@ viv task kill
 23. To shut down the server, you just need to stop the images
 
 ```bash
-docker compose down
+viv docker compose down
 ```
 
 24. And confirm there are no more active images
@@ -229,7 +229,13 @@ viv docker compose up --detach --wait --build
 ## 04 Known Issues
 
 **ISSUE: Install failed due to docker**
+```text
+Error: An exception occurred within a child process:
+  RuntimeError: /opt/homebrew/opt/docker not present or broken
+Please reinstall docker. Sorry :(
+```
 This may be fixed by running `brew link docker` and trying the installation again.
+
 
 ---
 ## 05 Developing and Maintaining this Formula
@@ -437,6 +443,7 @@ system "viv", "register-ssh-public-key", "#{ssh_key_path}.pub"
 - [ ] Fix having to do `brew link docker` for each install. (Possibly only on my computer)
 - [ ] Run viv setup automatically
 - [ ] Make viv setup
+- [ ] Look into docker buildx as a way of building the docker images
 
 ## 06 Contact the Maintainer
 
