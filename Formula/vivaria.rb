@@ -19,10 +19,10 @@ class Vivaria < Formula
     regex(/^v?(\d+(?:\.\d+)+)$/i)
   end
 
+  # docker compose is required for running task environments, but not included in deps.
+  # Check the README for this reasoning.
   depends_on "python@3.11" => :build
   depends_on "rust" => :build # Needed for pydantic
-  depends_on "docker"
-  depends_on "docker-compose"
 
   # TODO: Add bottle block for pre-built binaries
   # bottle do
@@ -102,7 +102,75 @@ class Vivaria < Formula
   end
   # TODO: Add cookiecutter package if accepted.
 
+  def check_for_docker_compose
+    docker_compose_installed = false
+    docker_compose_version = nil
+
+    # Try to get the user's actual PATH
+    user_path = `
+    source ~/.zshrc 2>/dev/null || \
+    source ~/.bash_profile 2>/dev/null || \
+    source ~/.profile 2>/dev/null && \
+    echo $PATH
+  `.strip
+
+    ohai "Current Homebrew PATH: #{ENV["PATH"]}"
+    ohai "User's shell PATH: #{user_path}"
+
+    # List of possible Docker binary locations
+    docker_paths = [
+      "/usr/local/bin/docker-compose",
+      "/opt/homebrew/bin/docker-compose",
+      "#{Dir.home}/bin/docker-compose",
+      "/Applications/Docker.app/Contents/Resources/bin/docker-compose",
+    ]
+
+    # Add paths from user's PATH
+    docker_paths += user_path.split(":")
+
+    docker_path = docker_paths.uniq.find { |path| File.executable?(path) }
+
+    if docker_path
+      ohai "Docker Compose binary found at: #{docker_path}"
+      docker_compose_version = `#{docker_path} version 2>&1`.strip
+      docker_compose_installed = $CHILD_STATUS.success?
+
+      if docker_compose_installed
+        ohai "Detected Version:: #{docker_compose_version}"
+      else
+        opoo "Docker Compose command failed. Output: #{docker_compose_version}"
+      end
+    else
+      opoo "Docker binary not found in expected locations or user PATH"
+    end
+
+    unless docker_compose_installed
+      odie <<~EOS
+
+        Vivaria installation failed.
+
+        Docker Compose is not detected on your system.
+          Docker Compose is required to run task environments for Vivaria.
+
+        You can install Docker Desktop for Mac, which includes Docker Compose, from:
+          https://docs.docker.com/desktop/install/mac-install/
+
+        Once installed, you may have to restart your computer and check if
+          docker compose is available by running:
+          docker compose version
+
+        Note that Vivaria requires version > 2.0 of docker compose
+          indicated by the syntax "docker compose" instead of "docker-compose".
+          read more at https://docs.docker.com/compose/releases/migrate/
+
+      EOS
+    end
+  end
+
   def install
+    # Check for Docker Compose
+    check_for_docker_compose
+
     # Install manpage
     man1.install buildpath/"cli/viv_cli/viv.1"
     # Install documentation
@@ -131,60 +199,111 @@ class Vivaria < Formula
     (etc/"vivaria").mkpath
   end
 
-  def post_install
-    # Prompt user for OpenAI API key and run viv setup
-    api_key = nil
-
-    while api_key.nil?
+  def prompt_for_api_key
+    loop do
       ohai "Please enter your OpenAI API key:"
       api_key = $stdin.gets.chomp
 
-      next if api_key.start_with?("sk-") && api_key.length == 51
+      if api_key.start_with?("sk-") && api_key.length > 20
+        return api_key
+      else
+        opoo "The provided OpenAI API key doesn't appear to be valid."
+        puts "Expected to start with 'sk-' and have length greater than 20"
+        puts "Please try again."
+      end
+    end
+  end
 
-      opoo "The provided OpenAI API key doesn't appear to be valid."
-      puts "Expected to start with 'sk-' and have length 51"
-      puts "Please try again."
-      api_key = nil
+  def style_command(text)
+    "\e[31m\e[40m#{text}\e[0m"
+  end
+
+  def style_shortcut(text)
+    "\e[94m#{text}\e[0m"
+  end
+
+  def viv_setup
+    # NOTE: Brew does not have permissions to edit or remove files outside of the Homebrew prefix
+    # This function does not work, but could be fixed if config.json is moved to the Homebrew prefix
+    config_file_path = File.expand_path("~/.config/viv-cli/config.json")
+    brew_prefix = HOMEBREW_PREFIX.to_s
+
+    loop do
+      config_exists = File.exist?(config_file_path)
+
+      if config_exists
+        ohai "A viv-cli configuration file already exists at #{config_file_path}."
+        ohai "Brew does not have permissions to edit or remove files outside of #{brew_prefix}."
+        ohai "Please delete or rename this file manually. You can use one of the following commands:"
+        puts "  To delete: #{style_command("rm #{config_file_path}")}"
+        puts "  To rename: #{style_command("mv #{config_file_path} #{config_file_path}.backup")}"
+        ohai "Once you have done so, press Enter to continue or Ctrl+C to abort the post-install process."
+
+        $stdin.gets # Wait for user input
+
+        if File.exist?(config_file_path)
+          opoo "The configuration file still exists. Please remove or rename it before continuing."
+        else
+          ohai "No existing viv-cli configuration found. Continuing with installation"
+          break # Exit the loop if the file no longer exists
+        end
+      else
+        ohai "No existing viv-cli configuration found."
+        ohai "Would you like to run 'viv setup' to create a new configuration? [y/N]"
+        response = $stdin.gets.chomp.downcase
+        break if response == "y"
+
+        ohai "Exiting viv setup. You can run it manually later with 'viv setup'."
+        return
+      end
     end
 
-    ohai "Running viv setup command..."
-    Utils.safe_popen_read("viv", "setup", "--openai-api-key", api_key, err: :out)
+    config_dir = File.dirname(config_file_path)
+    mkdir_p(config_dir) unless File.directory?(config_dir)
+    system "sudo", "chown", "-R", ENV["USER"], config_dir
+    system "sudo", "chmod", "755", config_dir
 
-    # puts output
+    api_key = prompt_for_api_key
 
-    unless $CHILD_STATUS.success?
-      opoo "viv setup command failed. Please check the output above for any errors."
-      puts "viv is installed, but it may not work properly. Please try running 'viv setup' directly."
-      exit 1
+    setup_command = "viv setup --openai-api-key #{api_key}"
+    ohai "Running: #{setup_command}"
+
+    output = `#{setup_command} 2>&1`
+    status = $CHILD_STATUS.success?
+
+    if status
+      ohai "viv setup completed successfully."
+    else
+      opoo "viv setup encountered an error. Output:"
+      puts output
     end
+  end
 
-    ohai "viv setup command completed successfully."
-
+  def build_docker_images
     # Prompt user to build Docker images
     ohai "Would you like to build the required Vivaria Docker images now? (This may take 3-8 minutes) [y/N]"
     response = $stdin.gets.chomp.downcase
 
     if response == "y"
-      # ohai "Opening Docker..."
-      # case RUBY_PLATFORM
-      # when /darwin/
-      #   system "open", "-a", "Docker"
-      # when /linux/
-      #   system "systemctl", "--user", "start", "docker-desktop"
-      # when /mingw|mswin/
-      #   system "start", "Docker Desktop"
-      # else
-      #   opoo "Unsupported platform for automatic Docker startup. Please ensure Docker is running manually."
-      # end
+      ohai "Opening Docker..."
+      case RUBY_PLATFORM
+      when /darwin/
+        system "open", "-a", "Docker"
+      when /linux/
+        system "systemctl", "--user", "start", "docker-desktop"
+      when /mingw|mswin/
+        system "start", "Docker Desktop"
+      else
+        opoo "Unsupported platform for automatic Docker startup. Please ensure Docker is running manually."
+      end
 
-      # # Wait for Docker to start
-      # ohai "Waiting for Docker to start..."
-      # 30.times do
-      #   if system("docker info > /dev/null 2>&1")
-      #     break
-      #   end
-      #   sleep 1
-      # end
+      # Wait for Docker to start
+      ohai "Waiting for Docker to start..."
+      30.times do
+        break if system("docker info > /dev/null 2>&1")
+
+        sleep 1
+      end
 
       ohai "Building Docker images..."
       system "viv", "docker", "compose", "build"
@@ -200,16 +319,21 @@ class Vivaria < Formula
     end
   end
 
+  def post_install
+    # Run 'viv setup' (Note: This does not work due to permissions)
+    # viv_setup
+    # Build Docker images (Note: This requires viv setup to have run successfully)
+    # build_docker_images
+  end
+
   def caveats
     <<~EOS
-      Post-installation instructions:
 
-        (Optional) If you want to start task environments containing aux VMs,
-         you'll need to configure AWS credentials. Run:
-         viv setup aws
+      Vivaria has been installed.
 
       For more information, visit:
-        https://vivaria.metr.org/
+      https://vivaria.metr.org/
+
     EOS
   end
 

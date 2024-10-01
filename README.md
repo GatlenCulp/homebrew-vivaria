@@ -30,8 +30,9 @@ For testing purposes and creating installation helper scripts, Gatlen has create
     - [05.02 The Python Dependencies](#0502-the-python-dependencies)
     - [05.03 Copying Everything Over](#0503-copying-everything-over)
     - [05.04 Debugging](#0504-debugging)
-    - [05.05 Random Useful Notes](#0505-random-useful-notes)
-    - [05.06 Roadmap](#0506-roadmap)
+    - [05.05 Notes on Docker](#0505-notes-on-docker)
+    - [05.06 Random Useful Notes](#0506-random-useful-notes)
+    - [05.07 Roadmap](#0507-roadmap)
   - [06 Contact the Maintainer](#06-contact-the-maintainer)
 
 ---
@@ -374,21 +375,14 @@ I was attempting to set up a Ruby debugger w/ intellisense in VSCode but it wasn
 `gem install ruby-lsp`
 `gem install debug`
 
-### 05.05 Random Useful Notes
+There are also a variety of tools to conform to both the Homebrew official style, Ruby's styling, and more. Here are a few of these commands:
 
-`echo $(brew --prefix vivaria)` can be used to get the [opt-prefix](https://docs.brew.sh/Manpage) for Vivaria. This returns a static path to a symlinked folder pointing to the most recent version of vivaria.
+01
+```bash
+brew style --fix gatlenculp/vivaria
+```
 
-The [Homebrew Ruby API documentation](https://rubydoc.brew.sh/Formula#homepage%3D-class_method) is very helpful as well as the the [higher-level Homebrew documentation](https://docs.brew.sh/).
-
-A good man-page has yet to be written and may not ever be written but I decided to draft a simple incomplete one with a warning. This may possibly lead to more confusion, but I've decided to do it anyways for the experience and to see if it may be helpful to continue developing.
-
-If you need to make any edits to the viv cli without editing the repo and reinstalling entirely, I recommend cloning the Vivaria repo, setting up a venv with required packages `mkdir ~/.venvs && python3 -m venv ~/.venvs/viv && source ~/.venvs/viv/bin/activate` then running `pip install -e cli` in the Vivaria project root. If you run `which viv` you should see you are not using the one in homebrew and are instead using the `viv` from your repo. Any updates to the cli will be live as you make them and commands should work normally.
-
-Caveats are info displayed after installation.
-
-To check whether your formula fits brew's formula style you can run `brew audit --eval-all --formula --strict --online vivaria`
-
-Ex:
+02
 ```bash
 brew audit --eval-all --formula --strict --online vivaria
 
@@ -418,14 +412,57 @@ gatlenculp/vivaria/vivaria
 Error: 22 problems in 1 formula detected.
 ```
 
-The style fixer is also helpful:
+03
 ```bash
-brew style --fix gatlenculp/vivaria
+brew test-bot --only-cleanup-before
 ```
 
-As well as all other tests included in the `.github/workflows/` files.
+04
+```bash
+brew test-bot --only-setup
+```
 
-### 05.06 Roadmap
+05
+```bash
+brew test-bot --only-tap-syntax
+```
+
+06
+```bash
+brew test-bot --only-formulae
+```
+
+### 05.05 Notes on Docker
+
+There are many variations of Docker for MacOS out there and they are a bit confusing. Here is a bit of a rundown:
+1. [**docker Homebrew Formula**](https://formulae.brew.sh/formula/docker) - This includes the `docker` CLI only without docker compose or the GUI.
+2. [**docker-compose Homebrew Formula**](https://formulae.brew.sh/formula/docker-compose) - This is `docker-compose` CLI, an extension for `docker`. It is important to note that despite being [referenced with the old Docker Compose v1 syntax `docker-compose` as opposed to v2 syntax](https://docs.docker.com/compose/releases/migrate/) `docker compose`, it should be the most recent version >v2.0. If this is installed but `docker compose` is not working, that is because the user did not take the extra step of actually plugging he extension into Docker. In the caveats for `docker-compose` it notes the following:
+```bash
+Compose is a Docker plugin. For Docker to find the plugin, add "cliPluginsExtraDirs" to ~/.docker/config.json:
+    "cliPluginsExtraDirs": [
+     "$HOMEBREW_PREFIX/lib/docker/cli-plugins"
+    ]
+```
+3. [**docker Homebrew Cask**](https://formulae.brew.sh/cask/docker) - This is Desktop Docker which comes packaged with both `docker` and `docker compose`. It will dynamically install either the Intel or Apple Silicon versions based on your Mac and should be up to date with the official release. Very annoyingly, this cask conflicts with both the [**docker Homebrew Formula**](https://formulae.brew.sh/formula/docker) AND [**docker-compose Homebrew Formula**](https://formulae.brew.sh/formula/docker-compose).
+4. [**docker desktop official**](https://docs.docker.com/desktop/install/mac-install/) - This is the official download from Docker to install Docker Desktop offering both intel and Apple silicon installations. Also conflicts with [**docker Homebrew Formula**](https://formulae.brew.sh/formula/docker) AND [**docker-compose Homebrew Formula**](https://formulae.brew.sh/formula/docker-compose) :).
+
+> ℹ️ *Broadly, Homebrew Formula seem to be for open-source apps while it seems like Homebrew Casks are for closed-source apps with GUI. Homebrew casks were initially a separately maintained project from Homebrew.*
+
+Since there are so many conflicts and we did not want to mess up the user's system, we decided only to make `docker-compose` a requirement, independently of how the user installed it and assume that the `docker compose` syntax is available. It's also important to note that for both Homebrew Formula and Casks, brew only supports installing formula as dependencies. Since Docker Desktop comes with the needed CLI as well as a simple GUI, we opted for asking the user to install the [**docker Homebrew Cask**](https://formulae.brew.sh/cask/docker) if no `docker-compose` was found
+
+### 05.06 Random Useful Notes
+
+`echo $(brew --prefix vivaria)` can be used to get the [opt-prefix](https://docs.brew.sh/Manpage) for Vivaria. This returns a static path to a symlinked folder pointing to the most recent version of vivaria.
+
+The [Homebrew Ruby API documentation](https://rubydoc.brew.sh/Formula#homepage%3D-class_method) is very helpful as well as the the [higher-level Homebrew documentation](https://docs.brew.sh/).
+
+A good man-page has yet to be written and may not ever be written but I decided to draft a simple incomplete one with a warning. This may possibly lead to more confusion, but I've decided to do it anyways for the experience and to see if it may be helpful to continue developing.
+
+If you need to make any edits to the viv cli without editing the repo and reinstalling entirely, I recommend cloning the Vivaria repo, setting up a venv with required packages `mkdir ~/.venvs && python3 -m venv ~/.venvs/viv && source ~/.venvs/viv/bin/activate` then running `pip install -e cli` in the Vivaria project root. If you run `which viv` you should see you are not using the one in homebrew and are instead using the `viv` from your repo. Any updates to the cli will be live as you make them and commands should work normally.
+
+Caveats are info displayed after installation.
+
+### 05.07 Roadmap
 
 - [ ] Automatically configure an SSH key for the user to use with viv.
 ```ruby
@@ -441,8 +478,7 @@ File.open(prefix/".env", "a") { |f| f.puts "SSH_PUBLIC_KEY_PATH=#{ssh_key_path}.
 system "viv", "register-ssh-public-key", "#{ssh_key_path}.pub"
 ```
 - [ ] Fix having to do `brew link docker` for each install. (Possibly only on my computer)
-- [ ] Run viv setup automatically
-- [ ] Make viv setup
+- [ ] Allow config.json to be set up within the homebrew prefix because it appears that it cannot be automatically configured from pot-install
 - [ ] Look into docker buildx as a way of building the docker images
 
 ## 06 Contact the Maintainer
