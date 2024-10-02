@@ -49,10 +49,10 @@ Make sure to have `docker compose` version > 2.0. You can check this by running:
 ```bash
 docker compose version
 ```
-If you don't have `docker compose`, you can install docker desktop with:
-```bash
-brew install --cask docker
-```
+> [!TIP] If you don't have `docker compose`, you can install docker desktop with:
+> ```bash
+> brew install --cask docker
+> ```
 
 
 **01. Tap this repository**
@@ -197,13 +197,12 @@ The solution to this task is "abandon"
 echo "abandon" > /home/agent/submission.txt
 ```
 
-Confirm the file creation was successful
-
-```bash
-cat /home/agent/submission.txt
-```
-
-> abandon
+> [!TIP]
+> To the file creation was successful
+> ```bash
+> cat /home/agent/submission.txt
+> ```
+> > abandon
 
 **14. Exit the task environment container**
 ```bash
@@ -225,20 +224,21 @@ viv task score
 >
 >  `viv task destroy task-environment--reverse_hash--abandon--446756826--4480279478`
 
-*You can try other answers using:*
-```bash
-viv task score --submission "wrong answer"
-```
-> No task environment specified. Using the task environment from the previous command: `task-environment--reverse_hash--abandon--446756826--4480279478`
-> === Scoring submission ===
-> SEP_MUfKWkpuVDn9E
-> 0.0
-> === Score ===
-> Task scored. Score: `0`
-> === Task finished ===
-> Leaving the task environment running. You can destroy it with:
->
->  `viv task destroy task-environment--reverse_hash--abandon--446756826--4480279478`
+> [!TIP]
+> You can try other answers using:
+> ```bash
+> viv task score --submission "wrong answer"
+> ```
+> > No task environment specified. Using the task environment from the previous command: `task-environment--reverse_hash--abandon--446756826--4480279478`
+> > === Scoring submission ===
+> > SEP_MUfKWkpuVDn9E
+> > 0.0
+> > === Score ===
+> > Task scored. Score: `0`
+> > === Task finished ===
+> > Leaving the task environment running. You can destroy it with:
+> >
+> > `viv task destroy task-environment--reverse_hash--abandon--446756826--4480279478`
 
 **16. Stop the task**
 ```bash
@@ -278,7 +278,7 @@ viv run reverse_hash/abandon \
 > 1289838120
 > https://localhost:4000/run/#1289838120/uq
 
-> [!INFO]
+> [!TIP]
 > The syntax for creating and running task environments is different from the syntax for creating and running agents in tasks environments. The former uses `viv task ...` while the latter uses `viv ...` 
 > 
 > Ex: `viv task run` vs `viv run`
@@ -377,7 +377,7 @@ brew upgrade vivaria
 ```bash
 viv docker compose down --rmi all
 ```
-> [!INFO]
+> [!TIP]
 > More docker image/build/cache/etc. removal commands may be necessary if you run into any errors.*
 
 ```bash
