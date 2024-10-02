@@ -10,7 +10,7 @@ class Vivaria < Formula
     revision: "4ed7a79da3e79f9d48a43cb362ae272ec3259f72"
   license "MIT"
   # Development release
-  head "https://github.com/METR/vivaria.git",
+  head "https://github.com/GatlenCulp/vivaria.git",
     branch: "main"
 
   # Automatically check for new versions
@@ -20,7 +20,7 @@ class Vivaria < Formula
   end
 
   # docker compose is required for running task environments, but not included in deps.
-  # Check the README for this reasoning.
+  # Check CONTRIBUTING.md for this reasoning.
   depends_on "python@3.11" => :build
   depends_on "rust" => :build # Needed for pydantic
 
@@ -100,7 +100,6 @@ class Vivaria < Formula
     url "https://files.pythonhosted.org/packages/ed/63/22ba4ebfe7430b76388e7cd448d5478814d3032121827c12a2cc287e2260/urllib3-2.2.3.tar.gz"
     sha256 "e7d814a81dad81e6caf2ec9fdedb284ecc9c73076b62654547cc64ccdcae26e9"
   end
-  # TODO: Add cookiecutter package if accepted.
 
   def check_for_docker_compose
     docker_compose_installed = false
@@ -115,7 +114,8 @@ class Vivaria < Formula
   `.strip
 
     ohai "Current Homebrew PATH: #{ENV["PATH"]}"
-    ohai "User's shell PATH: #{user_path}"
+    # Does not work
+    # ohai "User's shell PATH: #{user_path}"
 
     # List of possible Docker binary locations
     docker_paths = [
@@ -125,8 +125,9 @@ class Vivaria < Formula
       "/Applications/Docker.app/Contents/Resources/bin/docker-compose",
     ]
 
+    # Does not work
     # Add paths from user's PATH
-    docker_paths += user_path.split(":")
+    # docker_paths += user_path.split(":")
 
     docker_path = docker_paths.uniq.find { |path| File.executable?(path) }
 
@@ -136,7 +137,7 @@ class Vivaria < Formula
       docker_compose_installed = $CHILD_STATUS.success?
 
       if docker_compose_installed
-        ohai "Detected Version:: #{docker_compose_version}"
+        ohai "Detected Version: #{docker_compose_version}"
       else
         opoo "Docker Compose command failed. Output: #{docker_compose_version}"
       end
@@ -152,15 +153,15 @@ class Vivaria < Formula
         Docker Compose is not detected on your system.
           Docker Compose is required to run task environments for Vivaria.
 
-        You can install Docker Desktop for Mac, which includes Docker Compose, from:
-          https://docs.docker.com/desktop/install/mac-install/
+        You can install Docker Desktop for Mac, which includes Docker Compose, with:
+          #{style_command("brew install --cask docker")}
 
         Once installed, you may have to restart your computer and check if
           docker compose is available by running:
-          docker compose version
+          #{style_command("docker compose version")}
 
         Note that Vivaria requires version > 2.0 of docker compose
-          indicated by the syntax "docker compose" instead of "docker-compose".
+          indicated by the syntax #{style_command("docker compose")} instead of #{style_command("docker-compose")}.
           read more at https://docs.docker.com/compose/releases/migrate/
 
       EOS
@@ -196,18 +197,18 @@ class Vivaria < Formula
     dot_files = [".", ".."]
     src_dir.install Dir["*", ".*"].reject { |f| dot_files.include?(File.basename(f)) }
     # Create etc directory for configuration files (none yet)
-    (etc/"vivaria").mkpath
+    # (etc/"vivaria").mkpath
   end
 
   def prompt_for_api_key
     loop do
-      ohai "Please enter your OpenAI API key:"
+      ohai "🔑 Please enter your OpenAI API key:"
       api_key = $stdin.gets.chomp
 
       if api_key.start_with?("sk-") && api_key.length > 20
         return api_key
       else
-        opoo "The provided OpenAI API key doesn't appear to be valid."
+        opoo "❌ The provided OpenAI API key doesn't appear to be valid."
         puts "Expected to start with 'sk-' and have length greater than 20"
         puts "Please try again."
       end
@@ -232,7 +233,7 @@ class Vivaria < Formula
       config_exists = File.exist?(config_file_path)
 
       if config_exists
-        ohai "A viv-cli configuration file already exists at #{config_file_path}."
+        ohai "⚙️ A viv-cli configuration file already exists at #{config_file_path}."
         ohai "Brew does not have permissions to edit or remove files outside of #{brew_prefix}."
         ohai "Please delete or rename this file manually. You can use one of the following commands:"
         puts "  To delete: #{style_command("rm #{config_file_path}")}"
@@ -266,7 +267,7 @@ class Vivaria < Formula
     api_key = prompt_for_api_key
 
     setup_command = "viv setup --openai-api-key #{api_key}"
-    ohai "Running: #{setup_command}"
+    ohai "Running: #{style_command(setup_command)}"
 
     output = `#{setup_command} 2>&1`
     status = $CHILD_STATUS.success?
@@ -281,7 +282,7 @@ class Vivaria < Formula
 
   def build_docker_images
     # Prompt user to build Docker images
-    ohai "Would you like to build the required Vivaria Docker images now? (This may take 3-8 minutes) [y/N]"
+    ohai "🐳 Would you like to build the required Vivaria Docker images now? (This may take 3-8 minutes) [y/N]"
     response = $stdin.gets.chomp.downcase
 
     if response == "y"
@@ -329,10 +330,13 @@ class Vivaria < Formula
   def caveats
     <<~EOS
 
-      Vivaria has been installed.
+      🪴 Vivaria has been installed.
 
-      For more information, visit:
-      https://vivaria.metr.org/
+      🛠️ To complete setup, run
+          #{style_command("viv setup")}
+
+      ℹ️ For more information, visit:
+           https://vivaria.metr.org/
 
     EOS
   end

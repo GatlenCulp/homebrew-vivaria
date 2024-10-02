@@ -232,6 +232,16 @@ A good man-page has yet to be written and may not ever be written but I decided 
 
 If you need to make any edits to the viv cli without editing the repo and reinstalling entirely, I recommend cloning the Vivaria repo, setting up a venv with required packages `mkdir ~/.venvs && python3 -m venv ~/.venvs/viv && source ~/.venvs/viv/bin/activate` then running `pip install -e cli` in the Vivaria project root. If you run `which viv` you should see you are not using the one in homebrew and are instead using the `viv` from your repo. Any updates to the cli will be live as you make them and commands should work normally.
 
+To upgrade to the head (latest github main commit) as opposed to the stable tag release, use:
+```bash
+brew upgrade --fetch-HEAD vivaria
+```
+
+To install the latest head, use:
+```bash
+brew install --head vivaria
+```
+
 Caveats are info displayed after installation.
 
 ## 07 Roadmap
@@ -252,6 +262,17 @@ system "viv", "register-ssh-public-key", "#{ssh_key_path}.pub"
 - [ ] Fix having to do `brew link docker` for each install. (Possibly only on my computer)
 - [ ] Allow config.json to be set up within the homebrew prefix because it appears that it cannot be automatically configured from pot-install
 - [ ] Look into docker buildx as a way of building the docker images
+- [ ] Add cookiecutter to python resources if `viv task init` is accepted
+- [ ] Get final viv cli features approved
+- [ ] If viv docker is going to be a thing, fix dumb things like this:
+```bash
+╰─❯❯❯ viv docker compose build --no-cache
+🪴 Handing over execution to docker. Running command:
+🪴       docker compose build ---cache (at /opt/homebrew/Cellar/vivaria/0.1.5/vivaria)
+bad flag syntax: ---cache
+🪴 Docker command failed with exit code 16.
+🪴       You can debug docker-compose.yml at /opt/homebrew/Cellar/vivaria/0.1.5/vivaria
+```
 
 ## 08 Contact the Maintainer
 
