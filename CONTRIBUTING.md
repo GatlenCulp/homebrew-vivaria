@@ -273,6 +273,7 @@ system "viv", "register-ssh-public-key", "#{ssh_key_path}.pub"
 - [ ] Look into docker buildx as a way of building the docker images
 - [ ] Add cookiecutter to python resources if `viv task init` is accepted
 - [ ] Get final viv cli features approved
+- [ ] Add [collapsible sections](https://gist.github.com/pierrejoubert73/902cc94d79424356a8d20be2b382e1ab) into the README
 - [ ] If viv docker is going to be a thing, fix dumb things like this:
 ```bash
 ╰─❯❯❯ viv docker compose build --no-cache

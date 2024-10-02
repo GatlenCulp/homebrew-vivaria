@@ -286,7 +286,7 @@ viv run reverse_hash/abandon \
 
 **19. Track the agent's progress with the web GUI**
 
-The last command prints a link to [https://localhost:4000/run/#<RUN_ID>](https://localhost:4000/...). Follow that link to see the run's trace and track the agent's progress on the task. The run page should update live as the agent takes actions. It should look something like this:
+The last command prints a link to [https://localhost:4000/run/#<RUN_ID>](https://localhost:4000/...). Follow that link to see the run's trace and track the agent's progress on the task. Enable `Show generations`, and the run page should update live as the agent takes actions. It should look something like this:
 
 ![./assets/run-page2.png](./assets/run-page2.png)
 
@@ -396,7 +396,7 @@ curl http://localhost:4001/health
 
 **5. Clear your browser cache for localhost and refresh the page**
 
-`access_token` and `id_token` are saved by your browser. If your docker environment variables change due to a new install, your previous tokens will be outdated and must be reset.
+If you get the error `Unable to transform response from server` on the Web GUI screen, this means the `access_token` and `id_token` stored in your browser cache don't match the ones in the server. This is common if your docker environment variables change due to a new install, your previous tokens will be outdated and must be reset and the page reloaded.
 
 ![./assets/clear-browser-cache.png](./assets/clear-browser-cache.png)
 

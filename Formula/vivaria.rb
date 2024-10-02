@@ -6,8 +6,8 @@ class Vivaria < Formula
   # Stable release
   url "https://github.com/GatlenCulp/vivaria.git",
     using:    :git,
-    tag:      "v0.1.5",
-    revision: "4ed7a79da3e79f9d48a43cb362ae272ec3259f72"
+    tag:      "v0.2.0",
+    revision: "f92973a018948a93f15a8c869c4291cddb56faf6"
   license "MIT"
   # Development release
   head "https://github.com/GatlenCulp/vivaria.git",
