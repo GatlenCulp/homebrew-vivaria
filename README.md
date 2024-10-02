@@ -1,15 +1,23 @@
 # homebrew-vivaria
 
-**WARNING: This is currently a pre-production Forumla that has not been thoroughly tested and which installs a currently non-official version of Vivaria**
-
 ![Homebrew Tests](https://github.com/gatlenculp/homebrew-vivaria/actions/workflows/tests.yml/badge.svg)
+![GitHub stars](https://img.shields.io/github/stars/gatlenculp/homebrew-vivaria?style=social)
 
-![./assets/metr_logo.svg](./assets/metr_logo.svg)
-![./assets/logo.png](./assets/logo.png)
+> [!WARNING]
+> This is currently a pre-production Forumla that has not been thoroughly tested and which installs a currently non-official version of Vivaria
+
+<div align="center">
+  <img src="./assets/metr_logo.svg" alt="METR Logo" style="max-width: 200px; margin-right: 20px;">
+  <img src="./assets/logo.png" alt="Vivaria Logo" style="max-width: 200px;">
+</div>
 
 [Vivaria](https://vivaria.metr.org/) is [METR](https://metr.org/)'s tool for running evaluations and conducting agent elicitation research. This package contains a web app which is used for running and organzing evaluations as well as a command line interface to aid in the development of tasks. More information can be found on the [website](https://vivaria.metr.org/).
 
 For prototyping purposes, Gatlen has created [his own fork of Vivaria](https://github.com/GatlenCulp/vivaria/) which this formulae installs. See the original repo [here](https://github.com/METR/vivaria)
+
+<div align="center">
+  <img src="./assets/homebrew-logo.jpg" alt="Homebrew Logo" style="max-width: 400px; margin-bottom: 20px;">
+</div>
 
 *[Homebrew ("brew")](https://brew.sh/) is a macOS (and Linux) package manager. New contributers to this Homebrew formulae (especially those new to Homebrew formula development) should see [CONTRIBUTING.md](./CONTRIBUTING.md).*
 
@@ -35,19 +43,30 @@ For prototyping purposes, Gatlen has created [his own fork of Vivaria](https://g
 ---
 ## 01 Installation
 
-**1. Tap this repository**
+**00. Install Requirements (Docker)**
+Make sure to have `docker compose` version > 2.0. You can check this by running:
+```bash
+docker compose version
+```
+If you don't have `docker compose`, you can install docker desktop with:
+```bash
+brew install --cask docker
+```
+
+
+**01. Tap this repository**
 ```bash
 brew tap GatlenCulp/vivaria
 ```
 
-**2. Install Vivaria**
+**02. Install Vivaria**
 ```bash
 brew install vivaria
 ```
 ---
 ## 02 Post-install Setup
 
-**3. Run the post-installation setup** (This will ask you for a valid [OpenAI API Key](https://medium.com/@lorenzozar/how-to-get-your-own-openai-api-key-f4d44e60c327))
+**03. Run the post-installation setup** (This will ask you for a valid [OpenAI API Key](https://medium.com/@lorenzozar/how-to-get-your-own-openai-api-key-f4d44e60c327))
 
 *Be cautious running this command multiple times as it will overwrite your current configuration and will require you to follow all the instructions from here onward*
 ```bash
@@ -60,37 +79,37 @@ viv setup
 
 ### 03.01 Starting the Web GUI
 
-**4. Open docker**
+**04. Open docker**
 ```bash
 open -a Docker
 ```
 <!-- TODO: Insert Docker Desktop Image -->
 
-**5. Build and run the server images** (This may take a while)
+**05. Build and run the server images** (This may take a while)
 ```bash
 viv docker compose up --detach --wait
 ```
 
-**6. Check that the containers are running**
+**06. Check that the containers are running**
 ```bash
 docker compose ps  # You should see a list of containers
 ```
 ### 03.02 Accessing the Web GUI
 
-**7. Check that the task server is running**
+**07. Check that the task server is running**
 ```bash
 curl http://localhost:4001/health  # You should see a JSON response
 ```
 
 <!-- TODO: Insert JSON response -->
 
-**8. Open the Vivaria web GUI**
+**08. Open the Vivaria web GUI**
 
 You can access the web GUI at [https://localhost:4000/](https://localhost:4000/) and continue past the "insecure connection" warning.
 
 <!-- TODO: Add picture of continuing pa -->
 
-**9. The website will prompt you for your `ACCESS_TOKEN` and `ID_TOKEN` from `.env.server`.**
+**09. The website will prompt you for your `ACCESS_TOKEN` and `ID_TOKEN` from `.env.server`.**
 ![./assets/token-prompt.png](./assets/token-prompt.png)
 You can get these by running
 ```bash
