@@ -106,12 +106,12 @@ class Vivaria < Formula
     docker_compose_version = nil
 
     # Try to get the user's actual PATH
-    user_path = `
-    source ~/.zshrc 2>/dev/null || \
-    source ~/.bash_profile 2>/dev/null || \
-    source ~/.profile 2>/dev/null && \
-    echo $PATH
-  `.strip
+    # `
+    # source ~/.zshrc 2>/dev/null || \
+    # source ~/.bash_profile 2>/dev/null || \
+    # source ~/.profile 2>/dev/null && \
+    # echo $PATH
+    # `.strip
 
     ohai "Current Homebrew PATH: #{ENV["PATH"]}"
     # Does not work

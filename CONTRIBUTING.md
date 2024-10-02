@@ -138,14 +138,23 @@ end
 ## 04 Debugging
 
 To install the formula with debug mode and receive more verbose errors during developing the formula, you can run:
-`brew install --formula --debug --verbose ./Formula/vivaria.rb`
+```bash
+brew install --formula --debug --verbose ./Formula/vivaria.rb
+```
 
 Similarly for uninstalling:
-`brew uninstall --debug --verbose vivaria`
+```bash
+brew uninstall --debug --verbose vivaria
+```
 
 I was attempting to set up a Ruby debugger w/ intellisense in VSCode but it wasn't working:
-`gem install ruby-lsp`
-`gem install debug`
+```bash
+gem install ruby-lsp
+```
+
+```bash
+gem install debug
+```
 
 There are also a variety of tools to conform to both the Homebrew official style, Ruby's styling, and more. Here are a few of these commands:
 

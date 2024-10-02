@@ -49,7 +49,8 @@ Make sure to have `docker compose` version > 2.0. You can check this by running:
 ```bash
 docker compose version
 ```
-> [!TIP] If you don't have `docker compose`, you can install docker desktop with:
+> [!TIP]
+> If you don't have `docker compose`, you can install docker desktop with:
 > ```bash
 > brew install --cask docker
 > ```
@@ -91,7 +92,7 @@ viv setup
 > Building the docker image may take upwards of an hour.
 
 ---
-## 03 Getting Started 
+## 03 Getting Started
 
 ### 03.01 Starting the Web GUI
 
@@ -150,7 +151,7 @@ cat "$(brew --prefix vivaria)/vivaria/.env.server" | grep -E "ACCESS_TOKEN=|ID_T
 
 <!-- TODO: Explain why these prompts exist in the first place. -->
 
-You should then have access to the web interface. 
+You should then have access to the web interface.
 The landing page should look like this:
 
 ![./assets/home-page.png](./assets/home-page.png)
@@ -198,7 +199,7 @@ echo "abandon" > /home/agent/submission.txt
 ```
 
 > [!TIP]
-> To the file creation was successful
+> To check that the file creation was successful
 > ```bash
 > cat /home/agent/submission.txt
 > ```
@@ -211,7 +212,7 @@ exit
 
 **15. Check your score from the `submission.txt`**
 ```bash
-viv task score 
+viv task score
 ```
 > No task environment specified. Using the task environment from the previous command: `task-environment--reverse_hash--abandon--446756826--4480279478`
 > === Scoring submission ===
@@ -279,8 +280,8 @@ viv run reverse_hash/abandon \
 > https://localhost:4000/run/#1289838120/uq
 
 > [!TIP]
-> The syntax for creating and running task environments is different from the syntax for creating and running agents in tasks environments. The former uses `viv task ...` while the latter uses `viv ...` 
-> 
+> The syntax for creating and running task environments is different from the syntax for creating and running agents in tasks environments. The former uses `viv task ...` while the latter uses `viv ...`
+>
 > Ex: `viv task run` vs `viv run`
 
 **19. Track the agent's progress with the web GUI**
@@ -389,6 +390,9 @@ viv docker compose up --detach --wait
 ```bash
 curl http://localhost:4001/health
 ```
+> ```json
+> {"result":{"data":"ok"}}
+> ```
 
 **5. Clear your browser cache for localhost and refresh the page**
 
