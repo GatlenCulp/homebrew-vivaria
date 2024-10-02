@@ -139,7 +139,10 @@ vivaria-ui-1                          vivaria-ui                          "docke
 ```bash
 curl http://localhost:4001/health
 ```
+
+> ```json
 > {"result":{"data":"ok"}}
+> ```
 
 **08. Open the Vivaria web GUI**
 
