@@ -7,13 +7,11 @@
 ![./assets/metr_logo.svg](./assets/metr_logo.svg)
 ![./assets/logo.png](./assets/logo.png)
 
-[Vivaria](https://vivaria.metr.org/) is METR's tool for running evaluations and conducting agent elicitation research. This package contains a web app which is used for running and organzing evaluations as well as a command line interface to aid in the development of tasks. More information can be found on the website [here](https://vivaria.metr.org/).
+[Vivaria](https://vivaria.metr.org/) is [METR](https://metr.org/)'s tool for running evaluations and conducting agent elicitation research. This package contains a web app which is used for running and organzing evaluations as well as a command line interface to aid in the development of tasks. More information can be found on the [website](https://vivaria.metr.org/).
 
-For testing purposes and creating installation helper scripts, Gatlen has created [his own fork of Vivaria](https://github.com/GatlenCulp/vivaria/) which this installs. See the original [here](https://github.com/METR/vivaria)
+For prototyping purposes, Gatlen has created [his own fork of Vivaria](https://github.com/GatlenCulp/vivaria/) which this formulae installs. See the original repo [here](https://github.com/METR/vivaria)
 
-Homebrew ("brew") is a macOS (and Linux) package manager. More info [here](https://brew.sh/)
-
-New contributers to this Homebrew formula (especially those new to Homebrew formula development) should see [CONTRIBUTING.md](./CONTRIBUTING.md)
+*[Homebrew ("brew")](https://brew.sh/) is a macOS (and Linux) package manager. New contributers to this Homebrew formulae (especially those new to Homebrew formula development) should see [CONTRIBUTING.md](./CONTRIBUTING.md).*
 
 ## 00 TOC
 
@@ -46,17 +44,18 @@ brew tap GatlenCulp/vivaria
 ```bash
 brew install vivaria
 ```
-
+---
 ## 02 Post-install Setup
 
-**3. Run the post-installation setup** (This will ask you for a valid [OpenAI API Key](https://medium.com/@lorenzozar/how-to-get-your-own-openai-api-key-f4d44e60c327)).
+**3. Run the post-installation setup** (This will ask you for a valid [OpenAI API Key](https://medium.com/@lorenzozar/how-to-get-your-own-openai-api-key-f4d44e60c327))
+
 *Be cautious running this command multiple times as it will overwrite your current configuration and will require you to follow all the instructions from here onward*
 ```bash
 viv setup
 ```
 
 <!-- TODO: Insert example of output -->
-
+---
 ## 03 Getting Started 
 
 ### 03.01 Starting the Web GUI
@@ -86,6 +85,7 @@ curl http://localhost:4001/health  # You should see a JSON response
 <!-- TODO: Insert JSON response -->
 
 **8. Open the Vivaria web GUI**
+
 You can access the web GUI at [https://localhost:4000/](https://localhost:4000/) and continue past the "insecure connection" warning.
 
 <!-- TODO: Add picture of continuing pa -->
@@ -294,6 +294,6 @@ This may be fixed by running `brew link docker` and trying the installation agai
 ---
 ## 07 Contact the Maintainer
 
-Gatlen Culp, METR Contractor
-Email: gatlen.culp@metr.org
+Gatlen Culp, METR Contractor \
+Email: gatlen.culp@metr.org \
 Portfolio: [gatlen.notion.site](https://gatlen.notion.site)
