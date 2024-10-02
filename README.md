@@ -49,6 +49,7 @@ Make sure to have `docker compose` version > 2.0. You can check this by running:
 ```bash
 docker compose version
 ```
+
 > [!TIP]
 > If you don't have `docker compose`, you can install docker desktop with:
 > ```bash
@@ -75,6 +76,8 @@ brew install vivaria
 ```bash
 viv setup
 ```
+<details>
+<summary>Example Output</summary>
 
 > Please enter your OpenAI API key: sk-Hk[REDACTED]
 > Using output directory: /opt/homebrew/Cellar/vivaria/HEAD-6cc4707/vivaria
@@ -90,6 +93,8 @@ viv setup
 > Vivaria setup completed successfully. To finish installation, run:
 >         viv docker compose up --detach --wait
 > Building the docker image may take upwards of an hour.
+
+</details>
 
 ---
 ## 03 Getting Started
@@ -113,6 +118,9 @@ viv docker compose up --detach --wait
 ```bash
 viv docker compose ps
 ```
+<details>
+<summary>Example Output</summary>
+
 > 🪴 Handing over execution to docker. Running command:
 🪴       docker compose ps (at /opt/homebrew/Cellar/vivaria/0.1.5/vivaria)
 NAME                                  IMAGE                               COMMAND                  SERVICE                     CREATED       STATUS                        PORTS
@@ -121,6 +129,9 @@ vivaria-database-1                    vivaria-database                    "docke
 vivaria-proxy-1                       quay.io/panubo/sshd                 "/entry.sh /usr/sbin…"   proxy                       8 hours ago   Up About a minute             0.0.0.0:2222->22/tcp
 vivaria-server-1                      vivaria-server                      "docker-entrypoint.s…"   server                      8 hours ago   Up 58 seconds (healthy)       0.0.0.0:4001->4001/tcp
 vivaria-ui-1                          vivaria-ui                          "docker-entrypoint.s…"   ui                          8 hours ago   Up About a minute (healthy)   0.0.0.0:4000->4000/tcp
+
+</details>
+
 
 ### 03.02 Accessing the Web GUI
 
@@ -177,9 +188,15 @@ viv task list
 ```bash
 viv task enter --user agent
 ```
+
+<details>
+<summary>Example Output</summary>
+
 > No task environment specified. Using the task environment from the previous command: `task-environment--reverse_hash--abandon--446756826--4480279478`
 >
 > `agent@2789651c36fd:~$ `
+
+</details>
 
 **13. Look at the instructions in `/home/agent/`**
 
@@ -198,13 +215,6 @@ The solution to this task is "abandon"
 echo "abandon" > /home/agent/submission.txt
 ```
 
-> [!TIP]
-> To check that the file creation was successful
-> ```bash
-> cat /home/agent/submission.txt
-> ```
-> > abandon
-
 **14. Exit the task environment container**
 ```bash
 exit
@@ -214,6 +224,11 @@ exit
 ```bash
 viv task score
 ```
+
+<details>
+<summary>Example Output</summary>
+
+
 > No task environment specified. Using the task environment from the previous command: `task-environment--reverse_hash--abandon--446756826--4480279478`
 > === Scoring submission ===
 > SEP_MUfKWkpuVDn9E
@@ -225,21 +240,29 @@ viv task score
 >
 >  `viv task destroy task-environment--reverse_hash--abandon--446756826--4480279478`
 
-> [!TIP]
-> You can try other answers using:
-> ```bash
-> viv task score --submission "wrong answer"
-> ```
-> > No task environment specified. Using the task environment from the previous command: `task-environment--reverse_hash--abandon--446756826--4480279478`
-> > === Scoring submission ===
-> > SEP_MUfKWkpuVDn9E
-> > 0.0
-> > === Score ===
-> > Task scored. Score: `0`
-> > === Task finished ===
-> > Leaving the task environment running. You can destroy it with:
-> >
-> > `viv task destroy task-environment--reverse_hash--abandon--446756826--4480279478`
+</details>
+
+<details>
+<summary>Score other answers</summary>
+
+You can try other answers using:
+```bash
+viv task score --submission "wrong answer"
+```
+> No task environment specified. Using the task environment from the previous command: `task-environment--reverse_hash--abandon--446756826--4480279478`
+> === Scoring submission ===
+> SEP_MUfKWkpuVDn9E
+> 0.0
+> === Score ===
+> Task scored. Score: `0`
+> === Task finished ===
+> Leaving the task environment running. You can destroy it with:
+> 
+> `viv task destroy task-environment--reverse_hash--abandon--446756826--4480279478`
+
+</details>
+
+
 
 **16. Stop the task**
 ```bash
@@ -259,13 +282,7 @@ mkdir -p "$(brew --prefix vivaria)/agents"
 git clone https://github.com/poking-agents/modular-public \
   "$(brew --prefix vivaria)/agents/modular-public"
 ```
-> Cloning into '/opt/homebrew/opt/vivaria/agents/modular-public'...
-> remote: Enumerating objects: 44, done.
-> remote: Counting objects: 100% (44/44), done.
-> remote: Compressing objects: 100% (42/42), done.
-> remote: Total 44 (delta 15), reused 10 (delta 0), pack-reused 0 (from 0)
-> Receiving objects: 100% (44/44), 568.81 KiB | 1.03 MiB/s, done.
-> Resolving deltas: 100% (15/15), done.
+
 
 **18. Run a task with the agent you downloaded**
 We will now run this agent on the same `reverse_hash/abandon` task we did above.
